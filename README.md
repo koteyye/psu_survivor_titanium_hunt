@@ -2,6 +2,8 @@
 
 ## 💀 ВЫЖИВИ В МИРЕ БЛОКОВ ПИТАНИЯ ИЛИ УМРИ ПЫТАЯСЬ 💀
 
+## 🎮 [ИГРАТЬ ОНЛАЙН ПРЯМО СЕЙЧАС!](https://koteyye.github.io/psu_survivor_titanium_hunt/) 🎮
+
 ![Игровой процесс](assets/background.jpeg)
 
 ## 🚀 ЧТО ЭТО ЗА ИГРА?
@@ -28,6 +30,10 @@
 
 ## 🔧 УСТАНОВКА И ЗАПУСК
 
+### Онлайн-версия:
+Играй прямо в браузере без установки: [https://koteyye.github.io/psu_survivor_titanium_hunt/](https://koteyye.github.io/psu_survivor_titanium_hunt/)
+
+### Локальная установка:
 1. Клонируй репозиторий:
 ```bash
 git clone git@github.com:koteyye/psu_survivor_titanium_hunt.git
