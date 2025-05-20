@@ -46,27 +46,102 @@ function collectVeryGoodItem(player, item) {
 
 // Функция столкновения с плохим предметом
 function hitBadItem(player, item) {
-    item.disableBody(true, true);
-    
-    // Если у предмета есть текст, удаляем его
-    if (item.itemText) {
-        item.itemText.destroy();
+    // Сначала удаляем предмет и его текст
+    if (item.active) {
+        item.disableBody(true, true);
+        
+        // Если у предмета есть текст, удаляем его
+        if (item.itemText) {
+            item.itemText.destroy();
+            item.itemText = null;
+        }
+        
+        // Воспроизводим звук взрыва если звуки включены
+        const soundEnabled = localStorage.getItem('soundEnabled') === 'true';
+        if (soundEnabled && window.explosionSound) {
+            try {
+                window.explosionSound.play();
+            } catch (e) {
+                console.error('Ошибка воспроизведения звука взрыва:', e);
+            }
+        }
+        
+        try {
+            // Создаем анимацию взрыва с улучшенной обработкой ошибок
+            const scene = window.gameScene;
+            if (scene) {
+                console.log('Создаем взрыв...');
+                
+                // Проверяем наличие анимации
+                if (scene.anims.exists('explode')) {
+                    console.log('Анимация взрыва найдена');
+                } else {
+                    console.warn('Анимация взрыва не найдена, пытаемся создать заново');
+                    try {
+                        scene.anims.create({
+                            key: 'explode',
+                            frames: scene.anims.generateFrameNumbers('explosion', { start: 0, end: 15 }),
+                            frameRate: 20,
+                            repeat: 0
+                        });
+                        console.log('Анимация взрыва успешно создана');
+                    } catch (animError) {
+                        console.error('Ошибка при создании анимации взрыва:', animError);
+                    }
+                }
+                
+                // Ограничиваем позицию взрыва, чтобы он всегда был в пределах экрана
+                const explosionY = Math.max(100, player.y - 100);
+                
+                // Создаем спрайт взрыва
+                const explosion = window.explosions.create(player.x, explosionY, 'explosion');
+                explosion.setFlipY(true); // Переворачиваем взрыв
+                explosion.setDepth(1000); // Устанавливаем высокий z-index
+                
+                // Выводим информацию о спрайте
+                console.log('Спрайт взрыва создан:', explosion);
+                console.log('Размеры спрайта взрыва:', explosion.width, 'x', explosion.height);
+                console.log('Видимость спрайта взрыва:', explosion.visible);
+                
+                // Устанавливаем размер спрайта взрыва (немного больше, чем размер кадра)
+                explosion.setDisplaySize(350, 350);
+                
+                // Принудительно делаем спрайт видимым
+                explosion.setVisible(true);
+                explosion.setAlpha(1);
+                
+                // Запускаем анимацию
+                try {
+                    explosion.play('explode');
+                    console.log('Анимация взрыва запущена');
+                } catch (playError) {
+                    console.error('Ошибка при запуске анимации взрыва:', playError);
+                }
+                
+                // Устанавливаем таймер для гарантированного удаления спрайта
+                scene.time.delayedCall(1000, () => {
+                    if (explosion && explosion.active) {
+                        explosion.destroy();
+                        console.log('Спрайт взрыва удален по таймеру');
+                    }
+                });
+                
+                // Также добавляем обработчик завершения анимации
+                explosion.once('animationcomplete', () => {
+                    console.log('Анимация взрыва завершена');
+                    if (explosion && explosion.active) {
+                        explosion.destroy();
+                        console.log('Спрайт взрыва удален после завершения анимации');
+                    }
+                });
+            } else {
+                console.warn('Сцена не найдена');
+            }
+        } catch (e) {
+            console.error('Ошибка создания эффекта взрыва:', e);
+            console.error(e.stack);
+        }
     }
-    
-    // Воспроизводим звук взрыва если звуки включены
-    const soundEnabled = localStorage.getItem('soundEnabled') === 'true';
-    if (soundEnabled && window.explosionSound) {
-        window.explosionSound.play();
-    }
-    
-    // Создаем анимацию взрыва выше персонажа и переворачиваем ее
-    const explosion = window.explosions.create(player.x, player.y - 100, 'explosion');
-    explosion.setFlipY(true); // Переворачиваем взрыв
-    explosion.setDepth(1000); // Устанавливаем высокий z-index, чтобы взрыв был поверх всех объектов
-    explosion.play('explode');
-    explosion.once('animationcomplete', () => {
-        explosion.destroy();
-    });
     
     // Уменьшаем здоровье
     window.health -= 20;
@@ -83,80 +158,89 @@ function hitBadItem(player, item) {
 
 // Функция создания объектов
 function spawnItems(scene) {
-    const x = Phaser.Math.Between(50, 750);
+    const x = Phaser.Math.Between(100, 1820);
     const itemType = Phaser.Math.Between(1, 10);
     
     if (itemType <= 5) {
         // 50% шанс плохого блока
         const badItem = window.badItems.create(x, 0, 'badItem');
         badItem.setScale(0.8);
+        // Уменьшаем коллизионную область, но сохраняем визуальный размер
+        // Получаем размеры текстуры
+        const textureWidth = badItem.width;
+        const textureHeight = badItem.height;
+        // Устанавливаем коллизионную область на 60% от размера текстуры
+        const collisionWidth = textureWidth * 0.6;
+        const collisionHeight = textureHeight * 0.6;
+        // Устанавливаем смещение, чтобы коллизионная область была по центру
+        const offsetX = (textureWidth - collisionWidth) / 2;
+        const offsetY = (textureHeight - collisionHeight) / 2;
+        badItem.setSize(collisionWidth, collisionHeight);
+        badItem.setOffset(offsetX, offsetY);
+        
         badItem.setVelocity(Phaser.Math.Between(-100, 100), Phaser.Math.Between(150, 250));
         badItem.setAngularVelocity(Phaser.Math.Between(-100, 100));
         // Устанавливаем отскок для коллизий
         badItem.setBounce(1, 0);
-        // Добавляем текст "kcas" над блоком
-        const badText = scene.add.text(badItem.x, badItem.y - 20, 'kcas', { fontSize: '16px', fill: '#ff0000' });
-        badText.setOrigin(0.5);
-        // Сохраняем ссылку на текст в самом блоке
-        badItem.itemText = badText;
-        // Обновляем позицию текста вместе с блоком
+        // Не добавляем текст над блоком
+        badItem.itemText = null;
+        // Нет необходимости обновлять позицию текста
         badItem.update = function() {
-            if (this.itemText) {
-                this.itemText.x = this.x;
-                this.itemText.y = this.y - 30;
-                // Удаляем текст, если блок исчезает
-                if (!this.active) {
-                    badText.destroy();
-                }
-            }
+            // Пустая функция обновления
         }
     } else if (itemType <= 9) {
         // 40% шанс хорошего блока
         const goodItem = window.goodItems.create(x, 0, 'goodItem');
         goodItem.setScale(0.8);
+        // Уменьшаем коллизионную область, но сохраняем визуальный размер
+        // Получаем размеры текстуры
+        const textureWidth = goodItem.width;
+        const textureHeight = goodItem.height;
+        // Устанавливаем коллизионную область на 60% от размера текстуры
+        const collisionWidth = textureWidth * 0.6;
+        const collisionHeight = textureHeight * 0.6;
+        // Устанавливаем смещение, чтобы коллизионная область была по центру
+        const offsetX = (textureWidth - collisionWidth) / 2;
+        const offsetY = (textureHeight - collisionHeight) / 2;
+        goodItem.setSize(collisionWidth, collisionHeight);
+        goodItem.setOffset(offsetX, offsetY);
+        
         goodItem.setVelocity(Phaser.Math.Between(-100, 100), Phaser.Math.Between(150, 250));
         goodItem.setAngularVelocity(Phaser.Math.Between(-100, 100));
         // Устанавливаем отскок для коллизий
         goodItem.setBounce(1, 0);
-        // Добавляем текст "good" над блоком
-        const goodText = scene.add.text(goodItem.x, goodItem.y - 20, 'good', { fontSize: '16px', fill: '#00ff00' });
-        goodText.setOrigin(0.5);
-        // Сохраняем ссылку на текст в самом блоке
-        goodItem.itemText = goodText;
-        // Обновляем позицию текста вместе с блоком
+        // Не добавляем текст над блоком
+        goodItem.itemText = null;
+        // Нет необходимости обновлять позицию текста
         goodItem.update = function() {
-            if (this.itemText) {
-                this.itemText.x = this.x;
-                this.itemText.y = this.y - 30;
-                // Удаляем текст, если блок исчезает
-                if (!this.active) {
-                    goodText.destroy();
-                }
-            }
+            // Пустая функция обновления
         }
     } else {
         // 10% шанс очень хорошего блока
         const veryGoodItem = window.veryGoodItems.create(x, 0, 'veryGoodItem');
         veryGoodItem.setScale(0.8);
+        // Уменьшаем коллизионную область, но сохраняем визуальный размер
+        // Получаем размеры текстуры
+        const textureWidth = veryGoodItem.width;
+        const textureHeight = veryGoodItem.height;
+        // Устанавливаем коллизионную область на 60% от размера текстуры
+        const collisionWidth = textureWidth * 0.6;
+        const collisionHeight = textureHeight * 0.6;
+        // Устанавливаем смещение, чтобы коллизионная область была по центру
+        const offsetX = (textureWidth - collisionWidth) / 2;
+        const offsetY = (textureHeight - collisionHeight) / 2;
+        veryGoodItem.setSize(collisionWidth, collisionHeight);
+        veryGoodItem.setOffset(offsetX, offsetY);
+        
         veryGoodItem.setVelocity(Phaser.Math.Between(-100, 100), Phaser.Math.Between(150, 250));
         veryGoodItem.setAngularVelocity(Phaser.Math.Between(-100, 100));
         // Устанавливаем отскок для коллизий
         veryGoodItem.setBounce(1, 0);
-        // Добавляем текст "titanium" над блоком
-        const veryGoodText = scene.add.text(veryGoodItem.x, veryGoodItem.y - 20, 'titanium', { fontSize: '16px', fill: '#ffff00' });
-        veryGoodText.setOrigin(0.5);
-        // Сохраняем ссылку на текст в самом блоке
-        veryGoodItem.itemText = veryGoodText;
-        // Обновляем позицию текста вместе с блоком
+        // Не добавляем текст над блоком
+        veryGoodItem.itemText = null;
+        // Нет необходимости обновлять позицию текста
         veryGoodItem.update = function() {
-            if (this.itemText) {
-                this.itemText.x = this.x;
-                this.itemText.y = this.y - 30;
-                // Удаляем текст, если блок исчезает
-                if (!this.active) {
-                    veryGoodText.destroy();
-                }
-            }
+            // Пустая функция обновления
         }
     }
 }

@@ -6,7 +6,7 @@ export class SettingsScene extends Phaser.Scene {
 
     preload() {
         // Загружаем ресурсы для сцены настроек
-        this.load.image('background', 'assets/background.jpeg');
+        this.load.image('menuBackground', 'assets/menu_background.png');
         
         // Загружаем изображения для переключателей
         // Если изображения не существуют, будут использованы прямоугольники
@@ -20,11 +20,11 @@ export class SettingsScene extends Phaser.Scene {
 
     create() {
         // Добавляем фоновое изображение
-        this.add.image(400, 300, 'background').setDisplaySize(800, 600);
+        this.add.image(960, 540, 'menuBackground').setDisplaySize(1920, 1080);
         
         // Добавляем заголовок
-        this.add.text(400, 100, 'Настройки', {
-            fontSize: '36px',
+        this.add.text(960, 200, 'Настройки', {
+            fontSize: '64px',
             fontStyle: 'bold',
             fill: '#ffffff',
             stroke: '#000000',
@@ -37,21 +37,33 @@ export class SettingsScene extends Phaser.Scene {
         const soundEnabled = localStorage.getItem('soundEnabled') === 'true';
         
         // Создаем переключатели настроек
-        this.createToggle(400, 200, 'Музыка', musicEnabled, (enabled) => {
+        this.createToggle(960, 350, 'Музыка', musicEnabled, (enabled) => {
             localStorage.setItem('musicEnabled', enabled);
             // Применяем настройку сразу
+            // Для музыки игры
             if (window.backgroundMusic) {
                 if (enabled) {
-                    if (!window.backgroundMusic.isPlaying) {
+                    if (!window.backgroundMusic.isPlaying && this.scene.key === 'MainScene') {
                         window.backgroundMusic.play();
                     }
                 } else {
                     window.backgroundMusic.stop();
                 }
             }
+            
+            // Для музыки меню
+            if (window.menuMusic) {
+                if (enabled) {
+                    if (!window.menuMusic.isPlaying && this.scene.key === 'MenuScene') {
+                        window.menuMusic.play();
+                    }
+                } else {
+                    window.menuMusic.stop();
+                }
+            }
         });
         
-        this.createToggle(400, 280, 'Звуки', soundEnabled, (enabled) => {
+        this.createToggle(960, 450, 'Звуки', soundEnabled, (enabled) => {
             localStorage.setItem('soundEnabled', enabled);
             // Настройка будет применена при следующем воспроизведении звука
             // Если звуки выключены, останавливаем все текущие звуковые эффекты
@@ -66,7 +78,12 @@ export class SettingsScene extends Phaser.Scene {
         });
         
         // Создаем кнопку "Назад"
-        this.createButton(400, 400, 'Назад', () => {
+        this.createButton(960, 600, 'Назад', () => {
+            // Останавливаем музыку меню перед переходом обратно в меню
+            // (она будет запущена заново в MenuScene)
+            if (window.menuMusic && window.menuMusic.isPlaying) {
+                window.menuMusic.stop();
+            }
             this.scene.start('MenuScene');
         });
     }
@@ -74,12 +91,12 @@ export class SettingsScene extends Phaser.Scene {
     // Вспомогательная функция для создания кнопок
     createButton(x, y, text, callback) {
         // Создаем прямоугольник для кнопки
-        const button = this.add.rectangle(x, y, 300, 60, 0x4a6fa5, 0.8);
+        const button = this.add.rectangle(x, y, 400, 80, 0x4a6fa5, 0.8);
         button.setStrokeStyle(2, 0xffffff);
         
         // Добавляем текст на кнопку
         const buttonText = this.add.text(x, y, text, {
-            fontSize: '24px',
+            fontSize: '32px',
             fill: '#ffffff'
         }).setOrigin(0.5);
         
@@ -114,8 +131,8 @@ export class SettingsScene extends Phaser.Scene {
     // Функция для создания переключателя (toggle)
     createToggle(x, y, text, initialState, callback) {
         // Создаем текст для настройки
-        const label = this.add.text(x - 100, y, text, {
-            fontSize: '24px',
+        const label = this.add.text(x - 150, y, text, {
+            fontSize: '32px',
             fill: '#ffffff'
         }).setOrigin(0, 0.5);
         
@@ -124,16 +141,16 @@ export class SettingsScene extends Phaser.Scene {
         let toggle;
         
         if (this.textures.exists('checkbox_on') && this.textures.exists('checkbox_off')) {
-            toggle = this.add.image(x + 100, y, initialState ? 'checkbox_on' : 'checkbox_off');
-            toggle.setScale(0.5);
+            toggle = this.add.image(x + 150, y, initialState ? 'checkbox_on' : 'checkbox_off');
+            toggle.setScale(0.8);
         } else {
             // Создаем прямоугольник для переключателя
-            toggle = this.add.rectangle(x + 100, y, 40, 40, initialState ? 0x00ff00 : 0xff0000, 0.8);
+            toggle = this.add.rectangle(x + 150, y, 60, 60, initialState ? 0x00ff00 : 0xff0000, 0.8);
             toggle.setStrokeStyle(2, 0xffffff);
             
             // Добавляем текст внутри переключателя
-            const toggleText = this.add.text(x + 100, y, initialState ? 'Вкл' : 'Выкл', {
-                fontSize: '16px',
+            const toggleText = this.add.text(x + 150, y, initialState ? 'Вкл' : 'Выкл', {
+                fontSize: '24px',
                 fill: '#ffffff'
             }).setOrigin(0.5);
             

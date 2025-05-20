@@ -6,16 +6,16 @@ export class AboutScene extends Phaser.Scene {
 
     preload() {
         // Загружаем ресурсы для сцены "Об игре"
-        this.load.image('background', 'assets/background.jpeg');
+        this.load.image('menuBackground', 'assets/menu_background.png');
     }
 
     create() {
         // Добавляем фоновое изображение
-        this.add.image(400, 300, 'background').setDisplaySize(800, 600);
+        this.add.image(960, 540, 'menuBackground').setDisplaySize(1920, 1080);
         
         // Добавляем заголовок
-        this.add.text(400, 100, 'Об игре', {
-            fontSize: '36px',
+        this.add.text(960, 200, 'Об игре', {
+            fontSize: '64px',
             fontStyle: 'bold',
             fill: '#ffffff',
             stroke: '#000000',
@@ -36,12 +36,12 @@ export class AboutScene extends Phaser.Scene {
             ];
             
             // Отображаем информацию
-            const textY = 180;
-            const lineHeight = 30;
+            const textY = 320;
+            const lineHeight = 40;
             
             gameInfo.forEach((line, index) => {
-                this.add.text(400, textY + index * lineHeight, line, {
-                    fontSize: '20px',
+                this.add.text(960, textY + index * lineHeight, line, {
+                    fontSize: '32px',
                     fill: '#ffffff',
                     align: 'center'
                 }).setOrigin(0.5);
@@ -49,7 +49,12 @@ export class AboutScene extends Phaser.Scene {
         });
         
         // Создаем кнопку "Назад"
-        this.createButton(400, 450, 'Назад', () => {
+        this.createButton(960, 700, 'Назад', () => {
+            // Останавливаем музыку меню перед переходом обратно в меню
+            // (она будет запущена заново в MenuScene)
+            if (window.menuMusic && window.menuMusic.isPlaying) {
+                window.menuMusic.stop();
+            }
             this.scene.start('MenuScene');
         });
     }
@@ -57,12 +62,12 @@ export class AboutScene extends Phaser.Scene {
     // Вспомогательная функция для создания кнопок
     createButton(x, y, text, callback) {
         // Создаем прямоугольник для кнопки
-        const button = this.add.rectangle(x, y, 300, 60, 0x4a6fa5, 0.8);
+        const button = this.add.rectangle(x, y, 400, 80, 0x4a6fa5, 0.8);
         button.setStrokeStyle(2, 0xffffff);
         
         // Добавляем текст на кнопку
         const buttonText = this.add.text(x, y, text, {
-            fontSize: '24px',
+            fontSize: '32px',
             fill: '#ffffff'
         }).setOrigin(0.5);
         

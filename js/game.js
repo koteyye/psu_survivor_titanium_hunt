@@ -15,15 +15,19 @@ window.scoreText = null;
 window.healthText = null;
 window.gameOverText = null;
 window.restartText = null;
+window.confirmRestartText = null;
 window.score = 0;
 window.health = 100;
 window.gameOver = false;
 window.itemSpawnTime = 0;
 window.explosions = null;
 window.backgroundMusic = null;
+window.menuMusic = null;
 window.explosionSound = null;
 window.nyamnyamSound = null;
 window.gameScene = null;
+window.rKey = null;
+window.escKey = null;
 
 // Обновляем конфигурацию с импортированными сценами
 const gameConfig = {

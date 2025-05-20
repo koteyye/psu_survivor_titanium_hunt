@@ -6,18 +6,33 @@ export class MenuScene extends Phaser.Scene {
 
     preload() {
         // Загружаем ресурсы для меню
-        this.load.image('background', 'assets/background.jpeg');
+        this.load.image('menuBackground', 'assets/menu_background.png');
         
-        // Если нужны дополнительные ресурсы для меню, их можно загрузить здесь
+        // Загружаем музыку для меню
+        this.load.audio('menuMusic', 'assets/sounds/menu_background.wav');
     }
 
     create() {
         // Добавляем фоновое изображение
-        this.add.image(400, 300, 'background').setDisplaySize(800, 600);
+        this.add.image(960, 540, 'menuBackground').setDisplaySize(1920, 1080);
+        
+        // Останавливаем предыдущую музыку, если она играет
+        if (window.backgroundMusic && window.backgroundMusic.isPlaying) {
+            window.backgroundMusic.stop();
+        }
+        
+        // Добавляем и запускаем фоновую музыку для меню (с пониженной громкостью)
+        window.menuMusic = this.sound.add('menuMusic', { loop: true, volume: 0.10 });
+        
+        // Проверяем настройки музыки
+        const musicEnabled = localStorage.getItem('musicEnabled') === 'true';
+        if (musicEnabled) {
+            window.menuMusic.play();
+        }
         
         // Добавляем заголовок игры
-        this.add.text(400, 100, 'PSU Survivor: Titanium Hunt', {
-            fontSize: '36px',
+        this.add.text(960, 200, 'PSU Survivor: Titanium Hunt', {
+            fontSize: '64px',
             fontStyle: 'bold',
             fill: '#ffffff',
             stroke: '#000000',
@@ -25,15 +40,19 @@ export class MenuScene extends Phaser.Scene {
         }).setOrigin(0.5);
         
         // Создаем кнопки меню
-        this.createButton(400, 250, 'Начать игру', () => {
+        this.createButton(960, 400, 'Начать игру', () => {
+            // Останавливаем музыку меню перед переходом в игру
+            if (window.menuMusic && window.menuMusic.isPlaying) {
+                window.menuMusic.stop();
+            }
             this.scene.start('MainScene');
         });
         
-        this.createButton(400, 330, 'Настройки', () => {
+        this.createButton(960, 520, 'Настройки', () => {
             this.scene.start('SettingsScene');
         });
         
-        this.createButton(400, 410, 'Об игре', () => {
+        this.createButton(960, 640, 'Об игре', () => {
             this.scene.start('AboutScene');
         });
     }
@@ -41,12 +60,12 @@ export class MenuScene extends Phaser.Scene {
     // Вспомогательная функция для создания кнопок
     createButton(x, y, text, callback) {
         // Создаем прямоугольник для кнопки
-        const button = this.add.rectangle(x, y, 300, 60, 0x4a6fa5, 0.8);
+        const button = this.add.rectangle(x, y, 400, 80, 0x4a6fa5, 0.8);
         button.setStrokeStyle(2, 0xffffff);
         
         // Добавляем текст на кнопку
         const buttonText = this.add.text(x, y, text, {
-            fontSize: '24px',
+            fontSize: '32px',
             fill: '#ffffff'
         }).setOrigin(0.5);
         
