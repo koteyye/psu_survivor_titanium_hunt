@@ -34,8 +34,7 @@ const gameConfig = {
 // Создание игры
 const game = new Phaser.Game(gameConfig);
 
-// Сохраняем версию игры в localStorage для доступа из сцены "Об игре"
-localStorage.setItem('gameVersion', 'v1.0.0');
+// Версия игры теперь определяется автоматически из GitHub API в AboutScene
 
 // Устанавливаем настройки звука и музыки включенными по умолчанию
 localStorage.setItem('musicEnabled', 'true');

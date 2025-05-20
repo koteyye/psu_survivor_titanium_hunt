@@ -94,32 +94,49 @@ export class AboutScene extends Phaser.Scene {
         return { button, text: buttonText };
     }
     
-    // Функция для получения версии игры из тега
+    // Функция для получения версии игры из тега GitHub
     async getGameVersion() {
         try {
-            // Пытаемся получить версию из localStorage (если она была сохранена ранее)
+            // Сначала проверяем кэшированную версию
             let version = localStorage.getItem('gameVersion');
+            const cacheTime = localStorage.getItem('gameVersionCacheTime');
+            const now = Date.now();
             
-            // Если версия не найдена в localStorage, используем значение по умолчанию
-            if (!version) {
-                version = 'v1.0.0'; // Значение по умолчанию
-                
-                // Пытаемся получить версию из package.json или другого источника
+            // Если кэш устарел (более 1 часа) или отсутствует, получаем новую версию
+            if (!version || !cacheTime || (now - parseInt(cacheTime)) > 3600000) {
                 try {
-                    // Здесь можно добавить код для получения версии из других источников
-                    // Например, через fetch к API или из глобальной переменной
+                    // Получаем информацию о тегах из GitHub API
+                    const response = await fetch('https://api.github.com/repos/koteyye/psu_survivor_titanium_hunt/tags');
                     
-                    // Для примера, сохраняем версию в localStorage
-                    localStorage.setItem('gameVersion', version);
+                    if (response.ok) {
+                        const tags = await response.json();
+                        
+                        // Если есть теги, берем самый последний (первый в списке)
+                        if (tags && tags.length > 0) {
+                            version = tags[0].name;
+                            
+                            // Кэшируем версию и время кэширования
+                            localStorage.setItem('gameVersion', version);
+                            localStorage.setItem('gameVersionCacheTime', now.toString());
+                        } else {
+                            // Если теги не найдены, используем значение по умолчанию
+                            version = 'v1.0.1';
+                        }
+                    } else {
+                        // Если запрос не удался, используем значение по умолчанию
+                        version = 'v1.0.1';
+                    }
                 } catch (error) {
-                    console.error('Ошибка при получении версии:', error);
+                    console.error('Ошибка при получении версии из GitHub:', error);
+                    // В случае ошибки используем значение по умолчанию
+                    version = 'v1.0.1';
                 }
             }
             
             return version;
         } catch (error) {
             console.error('Ошибка при получении версии игры:', error);
-            return 'v1.0.0'; // Значение по умолчанию в случае ошибки
+            return 'v1.0.1'; // Значение по умолчанию в случае ошибки
         }
     }
 }
