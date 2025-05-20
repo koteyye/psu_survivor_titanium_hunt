@@ -140,72 +140,81 @@ export class MainScene extends Phaser.Scene {
         }
     }
     
+    // Метод для создания подтверждающего диалога
+    createConfirmationDialog(text, yesKey, noKey, onConfirm, onCancel) {
+        // Создаем текст подтверждения
+        const confirmText = this.add.text(960, 300, text, {
+            fontSize: '36px',
+            fill: '#ffffff',
+            backgroundColor: '#000000',
+            padding: { x: 15, y: 8 }
+        });
+        confirmText.setOrigin(0.5);
+        
+        // Ставим игру на паузу
+        this.isPaused = true;
+        this.physics.pause();
+        
+        // Настраиваем клавиши
+        const yesKeyObj = this.input.keyboard.addKey(yesKey);
+        const noKeyObj = noKey === Phaser.Input.Keyboard.KeyCodes.ESC 
+            ? (window.escKey || this.input.keyboard.addKey(noKey))
+            : this.input.keyboard.addKey(noKey);
+        
+        if (noKey === Phaser.Input.Keyboard.KeyCodes.ESC) {
+            window.escKey = noKeyObj;
+        }
+        
+        // Обработчик подтверждения
+        const yesHandler = () => {
+            confirmText.destroy();
+            yesKeyObj.removeListener('down', yesHandler);
+            noKeyObj.removeListener('down', noHandler);
+            onConfirm();
+        };
+        
+        // Обработчик отмены
+        const noHandler = () => {
+            confirmText.destroy();
+            yesKeyObj.removeListener('down', yesHandler);
+            noKeyObj.removeListener('down', noHandler);
+            onCancel();
+        };
+        
+        // Добавляем обработчики
+        yesKeyObj.once('down', yesHandler);
+        noKeyObj.once('down', noHandler);
+        
+        return confirmText;
+    }
+    
     // Метод для возврата в меню
     returnToMenu() {
         // Показываем текст подтверждения возврата в меню, если его ещё нет
         if (!this.confirmMenuText) {
-            this.confirmMenuText = this.add.text(960, 300, 'Вернуться в меню? (M - да, Esc - нет)', {
-                fontSize: '36px',
-                fill: '#ffffff',
-                backgroundColor: '#000000',
-                padding: { x: 15, y: 8 }
-            });
-            this.confirmMenuText.setOrigin(0.5);
-            
-            // Добавляем клавишу Esc для отмены, если её ещё нет
-            if (!window.escKey) {
-                window.escKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
-            }
-            
-            // Ставим игру на паузу
-            this.isPaused = true;
-            this.physics.pause();
-            
-            // Добавляем обработчик для подтверждения
-            const mKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.M);
-            
-            // Создаем одноразовый обработчик для клавиши M
-            const menuHandler = () => {
-                // Удаляем текст подтверждения
-                if (this.confirmMenuText) {
-                    this.confirmMenuText.destroy();
+            this.confirmMenuText = this.createConfirmationDialog(
+                'Вернуться в меню? (M - да, Esc - нет)',
+                Phaser.Input.Keyboard.KeyCodes.M,
+                Phaser.Input.Keyboard.KeyCodes.ESC,
+                // Функция при подтверждении
+                () => {
                     this.confirmMenuText = null;
-                }
-                
-                // Останавливаем музыку перед переходом в меню
-                if (window.backgroundMusic && window.backgroundMusic.isPlaying) {
-                    window.backgroundMusic.stop();
-                }
-                
-                // Переходим в меню
-                this.scene.start('MenuScene');
-                
-                // Удаляем обработчик
-                mKey.removeListener('down', menuHandler);
-            };
-            
-            // Добавляем обработчик для клавиши M
-            mKey.once('down', menuHandler);
-            
-            // Создаем одноразовый обработчик для клавиши Esc
-            const escHandler = () => {
-                // Удаляем текст подтверждения
-                if (this.confirmMenuText) {
-                    this.confirmMenuText.destroy();
+                    
+                    // Останавливаем музыку перед переходом в меню
+                    if (window.backgroundMusic && window.backgroundMusic.isPlaying) {
+                        window.backgroundMusic.stop();
+                    }
+                    
+                    // Переходим в меню
+                    this.scene.start('MenuScene');
+                },
+                // Функция при отмене
+                () => {
                     this.confirmMenuText = null;
+                    this.isPaused = false;
+                    this.physics.resume();
                 }
-                
-                // Возобновляем физику
-                this.isPaused = false;
-                this.physics.resume();
-                
-                // Удаляем обработчик
-                window.escKey.removeListener('down', escHandler);
-                mKey.removeListener('down', menuHandler);
-            };
-            
-            // Добавляем обработчик для клавиши Esc
-            window.escKey.once('down', escHandler);
+            );
         }
     }
 }
