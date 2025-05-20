@@ -1,6 +1,9 @@
 // Импортируем необходимые модули
 import { config } from './config.js';
-import { preload, create, update } from './scenes/mainScene.js';
+import { MainScene } from './scenes/mainScene.js';
+import { MenuScene } from './scenes/menuScene.js';
+import { SettingsScene } from './scenes/settingsScene.js';
+import { AboutScene } from './scenes/aboutScene.js';
 
 // Глобальные переменные
 window.player = null;
@@ -22,18 +25,21 @@ window.explosionSound = null;
 window.nyamnyamSound = null;
 window.gameScene = null;
 
-// Обновляем конфигурацию с импортированными функциями
+// Обновляем конфигурацию с импортированными сценами
 const gameConfig = {
     ...config,
-    scene: {
-        preload: preload,
-        create: create,
-        update: update
-    }
+    scene: [MenuScene, MainScene, SettingsScene, AboutScene]
 };
 
 // Создание игры
 const game = new Phaser.Game(gameConfig);
+
+// Сохраняем версию игры в localStorage для доступа из сцены "Об игре"
+localStorage.setItem('gameVersion', 'v1.0.0');
+
+// Устанавливаем настройки звука и музыки включенными по умолчанию
+localStorage.setItem('musicEnabled', 'true');
+localStorage.setItem('soundEnabled', 'true');
 
 // Экспортируем игру для возможного использования в других модулях
 export { game };

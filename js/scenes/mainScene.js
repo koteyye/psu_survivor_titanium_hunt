@@ -3,8 +3,14 @@ import { createPlayerPlaceholder, createGoodItemPlaceholder, createBadItemPlaceh
 import { bounceOffWall, collectGoodItem, collectVeryGoodItem, hitBadItem, spawnItems } from '../objects/items.js';
 import { restartGame } from '../objects/player.js';
 
-// Загрузка ресурсов
-function preload() {
+// Переименовываем функции в класс MainScene
+export class MainScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'MainScene' });
+    }
+
+    // Загрузка ресурсов
+    preload() {
     // Отключаем кэширование для всех загрузок
     this.load.setCORS('anonymous');
     this.load.crossOrigin = 'anonymous';
@@ -102,18 +108,28 @@ function preload() {
     });
 }
 
-// Создание игровых объектов
-function create() {
-    // Добавляем фоновое изображение
-    this.add.image(400, 300, 'background').setDisplaySize(800, 600);
+    // Создание игровых объектов
+    create() {
+        // Добавляем фоновое изображение
+        this.add.image(400, 300, 'background').setDisplaySize(800, 600);
+        
+        // Останавливаем предыдущую музыку, если она играет
+        if (window.backgroundMusic && window.backgroundMusic.isPlaying) {
+            window.backgroundMusic.stop();
+        }
+        
+        // Добавляем фоновую музыку
+        window.backgroundMusic = this.sound.add('backgroundMusic', { loop: true, volume: 0.3 });
+        
+        // Проверяем настройки музыки
+        const musicEnabled = localStorage.getItem('musicEnabled') === 'true';
+        if (musicEnabled) {
+            window.backgroundMusic.play();
+        }
     
-    // Добавляем и запускаем фоновую музыку
-    window.backgroundMusic = this.sound.add('backgroundMusic', { loop: true, volume: 0.3 });
-    window.backgroundMusic.play();
-    
-    // Добавляем звуковые эффекты
-    window.explosionSound = this.sound.add('explosionSound', { volume: 0.8 });
-    window.nyamnyamSound = this.sound.add('nyamnyamSound', { volume: 0.8 });
+        // Добавляем звуковые эффекты
+        window.explosionSound = this.sound.add('explosionSound', { volume: 0.8 });
+        window.nyamnyamSound = this.sound.add('nyamnyamSound', { volume: 0.8 });
     
     // Создание анимации взрыва
     this.anims.create({
@@ -211,52 +227,96 @@ function create() {
     this.physics.add.overlap(window.player, window.badItems, hitBadItem, null, this);
     this.physics.add.overlap(window.player, window.veryGoodItems, collectVeryGoodItem, null, this);
     
-    // Сохраняем ссылку на сцену в глобальной переменной
-    window.gameScene = this;
+        // Сохраняем ссылку на сцену в глобальной переменной
+        window.gameScene = this;
+        
+        // Добавляем кнопку возврата в меню
+        this.createMenuButton();
 }
 
-// Обновление игры
-function update(time) {
-    if (window.gameOver) {
-        // Проверяем нажатие пробела для перезапуска игры
-        if (window.cursors.space.isDown) {
-            restartGame(this);
+    // Обновление игры
+    update(time) {
+        if (window.gameOver) {
+            // Проверяем нажатие пробела для перезапуска игры
+            if (window.cursors.space.isDown) {
+                restartGame(this);
+            }
+            return;
         }
-        return;
-    }
 
-    // Управление игроком
-    if (window.cursors.left.isDown) {
-        window.player.setVelocityX(-300);
-    } else if (window.cursors.right.isDown) {
-        window.player.setVelocityX(300);
-    } else {
-        window.player.setVelocityX(0);
-    }
+        // Управление игроком
+        if (window.cursors.left.isDown) {
+            window.player.setVelocityX(-300);
+        } else if (window.cursors.right.isDown) {
+            window.player.setVelocityX(300);
+        } else {
+            window.player.setVelocityX(0);
+        }
 
-    // Создание новых объектов
-    if (time > window.itemSpawnTime) {
-        spawnItems(this);
-        window.itemSpawnTime = time + Phaser.Math.Between(500, 1500);
-    }
-    
-    // Обновление позиции текста для всех объектов
-    window.goodItems.getChildren().forEach(item => {
-        if (item.update) item.update();
-    });
-    
-    window.badItems.getChildren().forEach(item => {
-        if (item.update) item.update();
-    });
-    
-    window.veryGoodItems.getChildren().forEach(item => {
-        if (item.update) item.update();
-    });
+        // Создание новых объектов
+        if (time > window.itemSpawnTime) {
+            spawnItems(this);
+            window.itemSpawnTime = time + Phaser.Math.Between(500, 1500);
+        }
+        
+        // Обновление позиции текста для всех объектов
+        window.goodItems.getChildren().forEach(item => {
+            if (item.update) item.update();
+        });
+        
+        window.badItems.getChildren().forEach(item => {
+            if (item.update) item.update();
+        });
+        
+        window.veryGoodItems.getChildren().forEach(item => {
+            if (item.update) item.update();
+        });
 }
 
-// Экспортируем функции
-export {
-    preload,
-    create,
-    update
-};
+    // Создание кнопки возврата в меню
+    createMenuButton() {
+        // Создаем кнопку в верхнем правом углу
+        const button = this.add.rectangle(750, 30, 80, 40, 0x4a6fa5, 0.8);
+        button.setStrokeStyle(2, 0xffffff);
+        
+        // Добавляем текст на кнопку
+        const buttonText = this.add.text(750, 30, 'Меню', {
+            fontSize: '18px',
+            fill: '#ffffff'
+        }).setOrigin(0.5);
+        
+        // Делаем кнопку интерактивной
+        button.setInteractive();
+        
+        // Добавляем эффекты при наведении и клике
+        button.on('pointerover', () => {
+            button.fillColor = 0x5a8ac5;
+            buttonText.setStyle({ fill: '#ffffff' });
+        });
+        
+        button.on('pointerout', () => {
+            button.fillColor = 0x4a6fa5;
+            buttonText.setStyle({ fill: '#ffffff' });
+        });
+        
+        button.on('pointerdown', () => {
+            button.fillColor = 0x3a5f95;
+            buttonText.setStyle({ fill: '#cccccc' });
+        });
+        
+        button.on('pointerup', () => {
+            button.fillColor = 0x5a8ac5;
+            buttonText.setStyle({ fill: '#ffffff' });
+            
+            // Останавливаем музыку перед переходом в меню
+            if (window.backgroundMusic && window.backgroundMusic.isPlaying) {
+                window.backgroundMusic.stop();
+            }
+            
+            // Переходим в меню
+            this.scene.start('MenuScene');
+        });
+        
+        return { button, text: buttonText };
+    }
+}

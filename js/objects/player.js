@@ -23,8 +23,9 @@ function restartGame(scene) {
     window.veryGoodItems.clear(true, true);
     window.explosions.clear(true, true);
     
-    // Перезапускаем фоновую музыку, если она остановлена
-    if (!window.backgroundMusic.isPlaying) {
+    // Перезапускаем фоновую музыку, если она остановлена и если музыка включена в настройках
+    const musicEnabled = localStorage.getItem('musicEnabled') === 'true';
+    if (musicEnabled && window.backgroundMusic && !window.backgroundMusic.isPlaying) {
         window.backgroundMusic.play();
     }
 }
