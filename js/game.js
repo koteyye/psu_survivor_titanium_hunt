@@ -1,9 +1,12 @@
 // Импортируем необходимые модули
 import { config } from './config.js';
-import { MainScene } from './scenes/mainScene.js';
-import { MenuScene } from './scenes/menuScene.js';
-import { SettingsScene } from './scenes/settingsScene.js';
-import { AboutScene } from './scenes/aboutScene.js';
+import { MainScene, Level2Scene, Level3Scene } from './scenes/levels/gameLevels.js';
+import { MenuScene } from './scenes/ui/menuScene.js';
+import { SettingsScene } from './scenes/ui/settingsScene.js';
+import { AboutScene } from './scenes/ui/aboutScene.js';
+import { LevelSelectScene } from './scenes/ui/levelSelectScene.js';
+import { levelManager } from './utils/levelManager.js';
+import { progressManager } from './utils/progressManager.js';
 
 // Глобальные переменные
 window.player = null;
@@ -32,8 +35,11 @@ window.escKey = null;
 // Обновляем конфигурацию с импортированными сценами
 const gameConfig = {
     ...config,
-    scene: [MenuScene, MainScene, SettingsScene, AboutScene]
+    scene: [MenuScene, MainScene, Level2Scene, Level3Scene, SettingsScene, AboutScene, LevelSelectScene]
 };
+
+// Инициализируем менеджеры уровней и прогресса
+console.log('Инициализация менеджеров уровней и прогресса...');
 
 // Создание игры
 const game = new Phaser.Game(gameConfig);

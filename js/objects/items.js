@@ -1,4 +1,5 @@
 // Функции для работы с игровыми предметами
+import { updateItemCollectionStats } from '../utils/levelUtils.js';
 
 // Функция отскока от стены
 function bounceOffWall(item, wall) {
@@ -18,6 +19,9 @@ function collectGoodItem(player, item) {
     // Увеличиваем счет
     window.score += 10;
     window.scoreText.setText('Очки: ' + window.score);
+    
+    // Обновляем статистику собранных предметов для достижений
+    updateItemCollectionStats('good');
 }
 
 // Функция сбора очень хорошего предмета
@@ -42,6 +46,9 @@ function collectVeryGoodItem(player, item) {
     // Восстанавливаем здоровье
     window.health = Math.min(window.health + 15, 100);
     window.healthText.setText('Здоровье: ' + window.health);
+    
+    // Обновляем статистику собранных предметов для достижений
+    updateItemCollectionStats('veryGood');
 }
 
 // Функция создания эффекта взрыва
