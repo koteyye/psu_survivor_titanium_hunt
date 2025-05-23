@@ -1,5 +1,7 @@
 // Функции для загрузки ресурсов уровня
 
+import { getExplosionSpriteConfig } from '../../utils/animationUtils.js';
+
 // Основная функция загрузки ресурсов
 export function preloadLevelResources(scene) {
     // Отключаем кэширование для всех загрузок
@@ -32,10 +34,8 @@ export function preloadLevelResources(scene) {
     scene.load.image('veryGoodItem', `images/gameplay/very_good_psu.png?v=${cacheBuster}`);
     
     // Загружаем спрайтшит взрыва
-    scene.load.spritesheet('explosion', `images/gameplay/explosion.png?v=${cacheBuster}`, { 
-        frameWidth: 256,
-        frameHeight: 256 
-    });
+    // Размер файла 1024x1536, разбиваем на сетку 4x6 кадров по 256x256
+    scene.load.spritesheet('explosion', `images/gameplay/explosion.png?v=${cacheBuster}`, getExplosionSpriteConfig());
     
     // Добавляем обработчики событий загрузки
     setupLoadHandlers(scene);

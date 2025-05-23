@@ -1,5 +1,6 @@
 // Функции для работы с игровыми предметами
 import { updateItemCollectionStats } from '../utils/levelUtils.js';
+import { createExplosionAnimation } from '../utils/animationUtils.js';
 
 // Функция отскока от стены
 function bounceOffWall(item, wall) {
@@ -60,31 +61,22 @@ function createExplosionEffect(scene, x, y) {
     
     // Проверяем и создаем анимацию при необходимости
     if (!scene.anims.exists('explode')) {
-        try {
-            scene.anims.create({
-                key: 'explode',
-                frames: scene.anims.generateFrameNumbers('explosion', { start: 0, end: 15 }),
-                frameRate: 20,
-                repeat: 0
-            });
-        } catch (error) {
-            console.error('Ошибка при создании анимации взрыва:', error);
+        if (!createExplosionAnimation(scene)) {
             return null;
         }
     }
     
-    // Ограничиваем позицию взрыва
-    const safeY = Math.max(100, y - 100);
-    
+    // Используем точную позицию без смещения
     // Создаем спрайт взрыва
-    const explosion = window.explosions.create(x, safeY, 'explosion');
+    const explosion = window.explosions.create(x, y, 'explosion');
     
     // Настраиваем спрайт
-    explosion.setFlipY(true)
+    explosion.setFlipY(false) // Отключаем переворот по вертикали
              .setDepth(1000)
-             .setDisplaySize(350, 350)
+             .setDisplaySize(600, 600)
              .setVisible(true)
-             .setAlpha(1);
+             .setAlpha(1)
+             .setOrigin(0.5, 0.5); // Центрируем спрайт
     
     // Запускаем анимацию
     try {
@@ -159,11 +151,11 @@ function hitBadItem(player, item) {
 
 // Функция настройки предмета
 function setupItem(item) {
-    item.setScale(0.8);
+    item.setDisplaySize(150, 225);
     
     // Уменьшаем коллизионную область, но сохраняем визуальный размер
-    const textureWidth = item.width;
-    const textureHeight = item.height;
+    const textureWidth = 150;
+    const textureHeight = 225;
     const collisionWidth = textureWidth * 0.6;
     const collisionHeight = textureHeight * 0.6;
     const offsetX = (textureWidth - collisionWidth) / 2;

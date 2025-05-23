@@ -22,11 +22,25 @@ function restartGame(scene) {
     // Восстанавливаем игрока
     window.player.clearTint();
     window.player.setPosition(960, 900);
+    window.player.setVelocity(0, 0); // Сбрасываем скорость игрока
+    window.player.setAngle(0); // Сбрасываем угол наклона
     
-    // Очищаем все предметы
-    window.goodItems.clear(true, true);
-    window.badItems.clear(true, true);
-    window.veryGoodItems.clear(true, true);
+    // Сбрасываем скорость и очищаем все предметы
+    [window.goodItems, window.badItems, window.veryGoodItems].forEach(group => {
+        if (group && group.getChildren) {
+            // Сначала сбрасываем скорость всех предметов
+            group.getChildren().forEach(item => {
+                if (item && item.active) {
+                    item.setVelocity(0, 0);
+                    item.setAngularVelocity(0);
+                }
+            });
+        }
+        // Затем очищаем группу
+        if (group && group.clear) {
+            group.clear(true, true);
+        }
+    });
     
     // Очищаем группу взрывов, если она существует
     if (window.explosions && window.explosions.clear) {
@@ -42,10 +56,11 @@ function restartGame(scene) {
     // Сбрасываем время спавна предметов
     window.itemSpawnTime = 0;
     
-    // Возобновляем физику, если она была на паузе
-    if (scene.physics.paused) {
-        scene.physics.resume();
-    }
+    // Всегда возобновляем физику при перезапуске
+    scene.physics.resume();
+    
+    // Явно включаем физику для игрока
+    window.player.body.enable = true;
     
     // Сбрасываем состояние паузы
     if (scene.isPaused) {

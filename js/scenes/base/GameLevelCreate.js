@@ -1,6 +1,7 @@
 // Функции для создания игровых объектов
 
 import { showLevelInfo, createLevelCompletedUI } from '../../utils/levelUtils.js';
+import { createExplosionAnimation } from '../../utils/animationUtils.js';
 
 // Основная функция создания игровых объектов
 export function createLevelObjects(scene) {
@@ -45,24 +46,7 @@ function createGameEntities(scene) {
     window.nyamnyamSound = scene.sound.add('nyamnyamSound', { volume: 0.8 });
     
     // Создание анимации взрыва
-    try {
-        // Удаляем существующую анимацию, если она есть
-        if (scene.anims.exists('explode')) {
-            scene.anims.remove('explode');
-        }
-        
-        // Создаем анимацию заново
-        scene.anims.create({
-            key: 'explode',
-            frames: scene.anims.generateFrameNumbers('explosion', { start: 0, end: 16 }),
-            frameRate: 20,
-            repeat: 0
-        });
-        console.log('Анимация взрыва успешно создана');
-    } catch (e) {
-        console.error('Ошибка при создании анимации взрыва:', e);
-        console.error(e.stack);
-    }
+    createExplosionAnimation(scene);
     
     // Создание групп объектов
     window.goodItems = scene.physics.add.group();
@@ -122,7 +106,7 @@ function createPlayer(scene) {
         
         // Настраиваем спрайт игрока
         window.player.setCollideWorldBounds(true);
-        window.player.setScale(0.8);
+        window.player.setDisplaySize(200, 300);
         
         // Выводим информацию о спрайте
         console.log('Размеры спрайта игрока:', window.player.width, 'x', window.player.height);

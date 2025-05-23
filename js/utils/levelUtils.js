@@ -170,8 +170,28 @@ export function spawnLevelItems(scene, levelConfig) {
     
     item.setSize(collisionWidth, collisionHeight);
     item.setOffset(offsetX, offsetY);
-    item.setVelocity(Phaser.Math.Between(-100, 100), Phaser.Math.Between(150, 250));
-    item.setAngularVelocity(Phaser.Math.Between(-100, 100));
+    
+    // Настраиваем скорость в зависимости от уровня
+    let verticalSpeed = { min: 150, max: 250 };
+    let horizontalSpeed = { min: -100, max: 100 };
+    let angularSpeed = { min: -100, max: 100 };
+    
+    // Увеличиваем скорость в зависимости от уровня
+    if (levelConfig.gravity >= 750) { // Уровень 3 (гравитация 750)
+        verticalSpeed = { min: 375, max: 625 }; // На 150% быстрее
+        horizontalSpeed = { min: -250, max: 250 }; // На 150% быстрее
+        angularSpeed = { min: -250, max: 250 }; // На 150% быстрее
+    } else if (levelConfig.gravity >= 400) { // Уровень 1 (гравитация 400)
+        verticalSpeed = { min: 300, max: 500 }; // В 2 раза быстрее
+        horizontalSpeed = { min: -200, max: 200 }; // В 2 раза быстрее
+        angularSpeed = { min: -200, max: 200 }; // В 2 раза быстрее
+    }
+    
+    item.setVelocity(
+        Phaser.Math.Between(horizontalSpeed.min, horizontalSpeed.max),
+        Phaser.Math.Between(verticalSpeed.min, verticalSpeed.max)
+    );
+    item.setAngularVelocity(Phaser.Math.Between(angularSpeed.min, angularSpeed.max));
     item.setBounce(1, 0);
     item.itemText = null;
     item.update = function() { /* Пустая функция обновления */ };

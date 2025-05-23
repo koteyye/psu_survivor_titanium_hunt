@@ -171,11 +171,7 @@ export function bounceOffWall(item, wall) {
 export function collectGoodItem(player, item) {
     item.disableBody(true, true);
     
-    // Проверяем настройки звука
-    const soundEnabled = localStorage.getItem('soundEnabled') === 'true';
-    if (soundEnabled) {
-        window.nyamnyamSound.play();
-    }
+    // Для обычного хорошего блока не воспроизводим звук "нямням"
     
     // Увеличиваем счет
     window.score += 10;
@@ -206,7 +202,9 @@ export function hitBadItem(scene, player, item) {
     
     // Создаем анимацию взрыва
     const explosion = window.explosions.create(item.x, item.y, 'explosion');
-    explosion.setScale(0.5);
+    explosion.setDisplaySize(600, 600); // Используем тот же размер, что и в items.js
+    explosion.setOrigin(0.5, 0.5); // Центрируем спрайт
+    explosion.setFlipY(false); // Отключаем переворот по вертикали
     explosion.anims.play('explode');
     
     // Проверяем настройки звука
