@@ -2,6 +2,7 @@
 
 import { spawnLevelItems } from '../../utils/levelUtils.js';
 import { restartGame } from '../../objects/player.js';
+import { updateGameUI } from './GameLevelUI.js';
 
 // Основная функция обновления игры
 export function updateLevel(scene, time) {
@@ -29,6 +30,9 @@ export function updateLevel(scene, time) {
     // Обновление игровых объектов
     updateGameObjects(scene);
     
+    // Обновление UI
+    updateGameUI(scene);
+    
     // Проверка условий завершения уровня
     checkLevelCompletion(scene, time);
 }
@@ -38,14 +42,22 @@ function initializeControls(scene) {
     if (!window.rKey) {
         window.rKey = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
     }
+    
+    // Добавляем обработку пробела для перезапуска игры
+    if (!window.spaceKey) {
+        window.spaceKey = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    }
 }
 
 // Функция обработки состояния игры "Game Over"
 function handleGameOver(scene) {
     if (!window.gameOver) return false;
     
-    if (window.cursors.space.isDown || window.rKey.isDown) {
+    // Проверяем нажатие пробела или R для перезапуска
+    if (Phaser.Input.Keyboard.JustDown(window.spaceKey) || Phaser.Input.Keyboard.JustDown(window.rKey)) {
+        console.log('Перезапуск игры...');
         restartGame(scene);
+        return true;
     }
     
     return true;
@@ -182,8 +194,8 @@ function checkLevelCompletion(scene, time) {
         scene.levelCompleted = true;
         
         // Показываем текст о завершении уровня
-        scene.levelCompletedText.visible = true;
-        scene.nextLevelText.visible = true;
+        scene.levelCompletedText.setVisible(true);
+        scene.nextLevelText.setVisible(true);
         
         // Ставим игру на паузу
         scene.isPaused = true;

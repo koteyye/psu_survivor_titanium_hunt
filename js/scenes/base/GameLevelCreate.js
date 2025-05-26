@@ -1,7 +1,8 @@
 // Функции для создания игровых объектов
 
-import { showLevelInfo, createLevelCompletedUI } from '../../utils/levelUtils.js';
+import { showLevelInfo } from '../../utils/levelUtils.js';
 import { createExplosionAnimation } from '../../utils/animationUtils.js';
+import { createGameUI, showLevelCompletedUI, updateGameUI } from './GameLevelUI.js';
 
 // Основная функция создания игровых объектов
 export function createLevelObjects(scene) {
@@ -126,25 +127,18 @@ function createPlayer(scene) {
 
 // Создание UI элементов
 function createUIElements(scene) {
-    // Создание текста для счета и здоровья
-    window.scoreText = scene.add.text(40, 40, 'Очки: ' + window.score, { fontSize: '36px', fill: '#fff' });
-    window.healthText = scene.add.text(40, 100, 'Здоровье: ' + window.health, { fontSize: '36px', fill: '#fff' });
-    window.gameOverText = scene.add.text(960, 540, 'ИГРА ОКОНЧЕНА', {
-        fontSize: '96px',
-        fill: '#ff0000',
-        fontStyle: 'bold'
+    // Создаем UI элементы с использованием нашего нового модуля
+    const gameUI = createGameUI(scene, {
+        showHealthBar: true, // Показываем только шкалу здоровья
+        showMoneyBar: false,
+        showRageBar: false
     });
-    window.gameOverText.setOrigin(0.5);
-    window.gameOverText.visible = false;
     
-    // Создание текста для перезапуска игры
-    window.restartText = scene.add.text(960, 660, 'Нажмите ПРОБЕЛ для новой игры', {
-        fontSize: '42px',
-        fill: '#ffffff',
-        fontStyle: 'bold'
-    });
-    window.restartText.setOrigin(0.5);
-    window.restartText.visible = false;
+    // Сохраняем ссылки на глобальные переменные для совместимости
+    window.scoreText = gameUI.scoreText;
+    window.healthText = null; // Больше не используем отдельный текст для здоровья
+    window.gameOverText = gameUI.gameOverTitle;
+    window.restartText = gameUI.restartButton;
     
     // Показываем информацию об уровне
     const levelUI = showLevelInfo(scene, scene.levelId);
@@ -152,44 +146,12 @@ function createUIElements(scene) {
     scene.levelGoalText = levelUI.levelGoalText;
     
     // Создаем UI для завершения уровня
-    const completedUI = createLevelCompletedUI(scene);
-    scene.levelCompletedText = completedUI.levelCompletedText;
-    scene.nextLevelText = completedUI.nextLevelText;
-    
-    // Создаем текст для паузы
-    scene.pauseText = scene.add.text(960, 540, 'ПАУЗА', { 
-        fontSize: '96px', 
-        fill: '#ffffff',
-        fontStyle: 'bold'
-    });
-    scene.pauseText.setOrigin(0.5);
-    scene.pauseText.visible = false;
-    
-    // Создаем текст с подсказкой для продолжения игры
-    scene.resumeText = scene.add.text(960, 660, 'Нажмите P для продолжения', { 
-        fontSize: '42px', 
-        fill: '#ffffff',
-        fontStyle: 'bold'
-    });
-    scene.resumeText.setOrigin(0.5);
-    scene.resumeText.visible = false;
-    
-    // Создаем текст с подсказками по управлению
-    const controlsText = scene.add.text(960, 80, 'Управление: ← → - движение, P - пауза, R - перезапуск, M - меню', {
-        fontSize: '24px',
-        fill: '#ffffff',
-        backgroundColor: '#000000',
-        padding: { x: 15, y: 8 }
-    });
-    controlsText.setOrigin(0.5);
-    
-    // Скрываем подсказку через 5 секунд
-    scene.time.delayedCall(5000, () => {
-        controlsText.destroy();
-    });
+    const completedUI = showLevelCompletedUI(scene);
+    scene.levelCompletedText = completedUI.levelCompletedTitle;
+    scene.nextLevelText = completedUI.nextLevelButton;
     
     // Добавляем специфические элементы для уровня
-    if (scene.levelParams.levelDescription) {
+    if (scene.levelParams && scene.levelParams.levelDescription) {
         scene.add.text(960, 150, scene.levelParams.levelDescription, {
             fontSize: '24px',
             fill: '#ff9900',
@@ -198,55 +160,10 @@ function createUIElements(scene) {
         }).setOrigin(0.5);
     }
     
-    // Добавляем кнопку возврата в меню
-    createMenuButton(scene);
-}
-
-// Создание кнопки меню
-function createMenuButton(scene) {
-    // Создаем кнопку в верхнем правом углу
-    const button = scene.add.rectangle(1820, 60, 150, 70, 0x4a6fa5, 0.8);
-    button.setStrokeStyle(2, 0xffffff);
-    
-    // Добавляем текст на кнопку
-    const buttonText = scene.add.text(1820, 60, 'Меню', {
-        fontSize: '32px',
-        fill: '#ffffff'
-    }).setOrigin(0.5);
-    
-    // Делаем кнопку интерактивной
-    button.setInteractive();
-    
-    // Добавляем эффекты при наведении и клике
-    button.on('pointerover', () => {
-        button.fillColor = 0x5a8ac5;
-        buttonText.setStyle({ fill: '#ffffff' });
+    // Добавляем обновление UI в цикл обновления сцены
+    scene.events.on('update', () => {
+        updateGameUI(scene);
     });
-    
-    button.on('pointerout', () => {
-        button.fillColor = 0x4a6fa5;
-        buttonText.setStyle({ fill: '#ffffff' });
-    });
-    
-    button.on('pointerdown', () => {
-        button.fillColor = 0x3a5f95;
-        buttonText.setStyle({ fill: '#cccccc' });
-    });
-    
-    button.on('pointerup', () => {
-        button.fillColor = 0x5a8ac5;
-        buttonText.setStyle({ fill: '#ffffff' });
-        
-        // Останавливаем музыку перед переходом в меню
-        if (window.backgroundMusic && window.backgroundMusic.isPlaying) {
-            window.backgroundMusic.stop();
-        }
-        
-        // Переходим в меню
-        scene.scene.start('MenuScene');
-    });
-    
-    return { button, text: buttonText };
 }
 
 // Настройка обработчиков ввода
@@ -265,8 +182,8 @@ function setupInputHandlers(scene) {
     scene.input.keyboard.on('keydown-SPACE', () => {
         if (scene.levelCompleted) {
             // Скрываем тексты
-            scene.levelCompletedText.visible = false;
-            scene.nextLevelText.visible = false;
+            scene.levelCompletedText.setVisible(false);
+            scene.nextLevelText.setVisible(false);
             
             // Переходим на следующий уровень
             scene.goToNextLevel();

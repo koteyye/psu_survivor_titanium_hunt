@@ -1,4 +1,5 @@
 // Функции для работы с игроком
+import { updateGameUI } from '../scenes/base/GameLevelUI.js';
 
 // Функция перезапуска игры
 function restartGame(scene) {
@@ -7,11 +8,18 @@ function restartGame(scene) {
     window.health = 100;
     window.gameOver = false;
     
-    // Обновляем текст
-    window.scoreText.setText('Очки: 0');
-    window.healthText.setText('Здоровье: 100');
-    window.gameOverText.visible = false;
-    window.restartText.visible = false;
+    // Скрываем элементы Game Over
+    if (window.gameOverText) {
+        window.gameOverText.visible = false;
+    }
+    if (window.restartText) {
+        window.restartText.visible = false;
+    }
+    
+    // Обновляем UI через функцию updateGameUI
+    if (scene) {
+        updateGameUI(scene);
+    }
     
     // Удаляем текст подтверждения перезапуска, если он есть
     if (window.confirmRestartText) {

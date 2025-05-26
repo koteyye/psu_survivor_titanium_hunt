@@ -13,6 +13,19 @@ const config = {
     scale: {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH
+    },
+    // Добавляем плагины для UI элементов
+    dom: {
+        createContainer: true
+    },
+    plugins: {
+        scene: [
+            {
+                key: 'rexUI',
+                plugin: window.rexUI,
+                mapping: 'rexUI'
+            }
+        ]
     }
 };
 

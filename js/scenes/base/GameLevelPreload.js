@@ -33,6 +33,12 @@ export function preloadLevelResources(scene) {
     scene.load.image('badItem', `images/gameplay/bad_psu.png?v=${cacheBuster}`);
     scene.load.image('veryGoodItem', `images/gameplay/very_good_psu.png?v=${cacheBuster}`);
     
+    // Загружаем иконки для UI
+    scene.load.image('healthIcon', 'game_icons/health.png');
+    scene.load.image('scoreIcon', 'game_icons/score.png');
+    scene.load.image('moneyIcon', 'game_icons/money.png');
+    scene.load.image('rageIcon', 'game_icons/rage.png');
+    
     // Загружаем спрайтшит взрыва
     // Размер файла 1024x1536, разбиваем на сетку 4x6 кадров по 256x256
     scene.load.spritesheet('explosion', `images/gameplay/explosion.png?v=${cacheBuster}`, getExplosionSpriteConfig());

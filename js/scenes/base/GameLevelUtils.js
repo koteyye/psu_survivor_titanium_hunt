@@ -1,6 +1,7 @@
 // Вспомогательные функции для игрового уровня
 
 import { goToNextLevel as utilsGoToNextLevel } from '../../utils/levelUtils.js';
+import { updateGameUI, showGameOverUI } from './GameLevelUI.js';
 
 // Функция для переключения паузы
 export function togglePause(scene) {
@@ -33,11 +34,7 @@ export function togglePause(scene) {
 export function handleResize(scene, gameSize) {
     // Обновляем позиции текстовых элементов
     if (window.scoreText) {
-        window.scoreText.setPosition(40, 40);
-    }
-    
-    if (window.healthText) {
-        window.healthText.setPosition(40, 100);
+        window.scoreText.setPosition(80, 40);
     }
     
     if (window.gameOverText) {
@@ -175,7 +172,11 @@ export function collectGoodItem(player, item) {
     
     // Увеличиваем счет
     window.score += 10;
-    window.scoreText.setText('Очки: ' + window.score);
+    
+    // Обновляем UI
+    if (window.scoreText) {
+        window.scoreText.setText('Очки: ' + window.score);
+    }
 }
 
 // Функция для сбора очень хорошего предмета
@@ -190,10 +191,17 @@ export function collectVeryGoodItem(player, item) {
     
     // Увеличиваем счет и здоровье
     window.score += 20;
-    window.scoreText.setText('Очки: ' + window.score);
-    
     window.health = Math.min(window.health + 10, 100);
-    window.healthText.setText('Здоровье: ' + window.health);
+    
+    // Обновляем UI
+    if (window.scoreText) {
+        window.scoreText.setText('Очки: ' + window.score);
+    }
+    
+    // Обновляем UI здоровья через функцию updateGameUI
+    if (window.gameScene) {
+        updateGameUI(window.gameScene);
+    }
 }
 
 // Функция для столкновения с плохим предметом
@@ -215,17 +223,21 @@ export function hitBadItem(scene, player, item) {
     
     // Уменьшаем здоровье
     window.health -= 20;
-    window.healthText.setText('Здоровье: ' + window.health);
+    
+    // Обновляем UI здоровья через функцию updateGameUI
+    if (window.gameScene) {
+        updateGameUI(window.gameScene);
+    }
     
     // Проверяем, не закончилась ли игра
     if (window.health <= 0) {
         window.health = 0;
-        window.healthText.setText('Здоровье: 0');
         window.gameOver = true;
         
-        // Показываем текст окончания игры
-        window.gameOverText.visible = true;
-        window.restartText.visible = true;
+        // Показываем UI окончания игры
+        if (window.gameScene) {
+            showGameOverUI(window.gameScene);
+        }
         
         // Останавливаем игру
         scene.physics.pause();

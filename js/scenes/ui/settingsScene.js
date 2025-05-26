@@ -1,7 +1,10 @@
 // Сцена настроек
+import { CyberButton, CyberTitle, CyberSwitch } from '../../ui/index.js';
+
 export class SettingsScene extends Phaser.Scene {
     constructor() {
         super({ key: 'SettingsScene' });
+        this.uiElements = []; // Массив для хранения UI элементов
     }
 
     preload() {
@@ -9,176 +12,156 @@ export class SettingsScene extends Phaser.Scene {
         this.load.image('menuBackground', 'assets/ui/menu_background.png');
         
         // Загружаем изображения для переключателей
-        // Если изображения не существуют, будут использованы прямоугольники
-        try {
-            this.load.image('checkbox_on', 'assets/ui/checkbox_on.png');
-            this.load.image('checkbox_off', 'assets/ui/checkbox_off.png');
-        } catch (e) {
-            console.warn('Изображения чекбоксов не найдены, будут использованы прямоугольники');
-        }
+        this.load.image('checkbox_on', 'assets/ui/checkbox_on.png');
+        this.load.image('checkbox_off', 'assets/ui/checkbox_off.png');
+        
+        // Загружаем иконки
+        this.load.image('soundIcon', 'assets/ui/sound.png');
+        this.load.image('musicIcon', 'assets/ui/music.png');
     }
 
     create() {
         // Добавляем фоновое изображение
         this.add.image(960, 540, 'menuBackground').setDisplaySize(1920, 1080);
         
-        // Добавляем заголовок
-        this.add.text(960, 200, 'Настройки', {
-            fontSize: '64px',
-            fontStyle: 'bold',
-            fill: '#ffffff',
-            stroke: '#000000',
-            strokeThickness: 6
-        }).setOrigin(0.5);
+        // Добавляем заголовок с использованием CyberTitle
+        const title = new CyberTitle(
+            this, 
+            960, 
+            200, 
+            'Настройки', 
+            { 
+                fontSize: 64,
+                glowIntensity: 1.5,
+                pulseAnimation: true
+            }
+        );
+        this.uiElements.push(title);
         
         // Получаем текущие настройки из localStorage
         // По умолчанию настройки включены (установлено в game.js)
         const musicEnabled = localStorage.getItem('musicEnabled') === 'true';
         const soundEnabled = localStorage.getItem('soundEnabled') === 'true';
         
-        // Создаем переключатели настроек
-        this.createToggle(960, 350, 'Музыка', musicEnabled, (enabled) => {
-            localStorage.setItem('musicEnabled', enabled);
-            // Применяем настройку сразу
-            // Для музыки игры
-            if (window.backgroundMusic) {
-                if (enabled) {
-                    if (!window.backgroundMusic.isPlaying && this.scene.key === 'MainScene') {
-                        window.backgroundMusic.play();
-                    }
-                } else {
-                    window.backgroundMusic.stop();
-                }
-            }
-            
-            // Для музыки меню
-            if (window.menuMusic) {
-                if (enabled) {
-                    if (!window.menuMusic.isPlaying && this.scene.key === 'MenuScene') {
-                        window.menuMusic.play();
-                    }
-                } else {
-                    window.menuMusic.stop();
-                }
-            }
-        });
+        // Создаем большую иконку музыки
+        const musicIcon = this.add.image(700, 450, 'musicIcon');
+        musicIcon.setDisplaySize(300, 300);
         
-        this.createToggle(960, 450, 'Звуки', soundEnabled, (enabled) => {
-            localStorage.setItem('soundEnabled', enabled);
-            // Настройка будет применена при следующем воспроизведении звука
-            // Если звуки выключены, останавливаем все текущие звуковые эффекты
-            if (!enabled) {
-                if (window.explosionSound) {
-                    window.explosionSound.stop();
-                }
-                if (window.nyamnyamSound) {
-                    window.nyamnyamSound.stop();
-                }
-            }
-        });
+        // Добавляем свечение для иконки музыки
+        const musicGlow = this.add.image(700, 450, 'musicIcon');
+        musicGlow.setDisplaySize(320, 320);
+        musicGlow.setTint(0x00ffff);
+        musicGlow.setAlpha(0.5);
+        musicGlow.setBlendMode(Phaser.BlendModes.ADD);
         
-        // Создаем кнопку "Назад"
-        this.createButton(960, 600, 'Назад', () => {
-            // Переходим обратно в меню БЕЗ остановки музыки
-            this.scene.start('MenuScene');
-        });
+        // Создаем переключатель для музыки (без текста)
+        const musicSwitch = new CyberSwitch(
+            this, 
+            700, 
+            600, 
+            '', // Убираем текст
+            musicEnabled, 
+            (enabled) => {
+                localStorage.setItem('musicEnabled', enabled);
+                // Применяем настройку сразу
+                // Для музыки игры
+                if (window.backgroundMusic) {
+                    if (enabled) {
+                        if (!window.backgroundMusic.isPlaying && this.scene.key === 'MainScene') {
+                            window.backgroundMusic.play();
+                        }
+                    } else {
+                        window.backgroundMusic.stop();
+                    }
+                }
+                
+                // Для музыки меню
+                if (window.menuMusic) {
+                    if (enabled) {
+                        if (!window.menuMusic.isPlaying && this.scene.key === 'MenuScene') {
+                            window.menuMusic.play();
+                        }
+                    } else {
+                        window.menuMusic.stop();
+                    }
+                }
+            },
+            {
+                width: 100,
+                height: 60,
+                fontSize: 32
+            }
+        );
+        this.uiElements.push(musicSwitch);
+        
+        // Создаем большую иконку звука
+        const soundIcon = this.add.image(1220, 450, 'soundIcon');
+        soundIcon.setDisplaySize(300, 300);
+        
+        // Добавляем свечение для иконки звука
+        const soundGlow = this.add.image(1220, 450, 'soundIcon');
+        soundGlow.setDisplaySize(320, 320);
+        soundGlow.setTint(0x00ffff);
+        soundGlow.setAlpha(0.5);
+        soundGlow.setBlendMode(Phaser.BlendModes.ADD);
+        
+        // Создаем переключатель для звуков (без текста)
+        const soundSwitch = new CyberSwitch(
+            this, 
+            1220, 
+            600, 
+            '', // Убираем текст
+            soundEnabled, 
+            (enabled) => {
+                localStorage.setItem('soundEnabled', enabled);
+                // Настройка будет применена при следующем воспроизведении звука
+                // Если звуки выключены, останавливаем все текущие звуковые эффекты
+                if (!enabled) {
+                    if (window.explosionSound) {
+                        window.explosionSound.stop();
+                    }
+                    if (window.nyamnyamSound) {
+                        window.nyamnyamSound.stop();
+                    }
+                }
+            },
+            {
+                width: 100,
+                height: 60,
+                fontSize: 32
+            }
+        );
+        this.uiElements.push(soundSwitch);
+        
+        // Создаем кнопку "Назад" с использованием CyberButton
+        const backButton = new CyberButton(
+            this, 
+            960, 
+            800, 
+            'Назад', 
+            () => {
+                // Переходим обратно в меню БЕЗ остановки музыки
+                this.scene.start('MenuScene');
+            },
+            {
+                width: 400,
+                height: 80,
+                fontSize: 32
+            }
+        );
+        // Добавляем иконку к кнопке "Назад"
+        backButton.addIcon('⬅️');
+        this.uiElements.push(backButton);
     }
     
-    // Вспомогательная функция для создания кнопок
-    createButton(x, y, text, callback) {
-        // Создаем прямоугольник для кнопки
-        const button = this.add.rectangle(x, y, 400, 80, 0x4a6fa5, 0.8);
-        button.setStrokeStyle(2, 0xffffff);
-        
-        // Добавляем текст на кнопку
-        const buttonText = this.add.text(x, y, text, {
-            fontSize: '32px',
-            fill: '#ffffff'
-        }).setOrigin(0.5);
-        
-        // Делаем кнопку интерактивной
-        button.setInteractive();
-        
-        // Добавляем эффекты при наведении и клике
-        button.on('pointerover', () => {
-            button.fillColor = 0x5a8ac5;
-            buttonText.setStyle({ fill: '#ffffff' });
-        });
-        
-        button.on('pointerout', () => {
-            button.fillColor = 0x4a6fa5;
-            buttonText.setStyle({ fill: '#ffffff' });
-        });
-        
-        button.on('pointerdown', () => {
-            button.fillColor = 0x3a5f95;
-            buttonText.setStyle({ fill: '#cccccc' });
-        });
-        
-        button.on('pointerup', () => {
-            button.fillColor = 0x5a8ac5;
-            buttonText.setStyle({ fill: '#ffffff' });
-            callback();
-        });
-        
-        return { button, text: buttonText };
-    }
-    
-    // Функция для создания переключателя (toggle)
-    createToggle(x, y, text, initialState, callback) {
-        // Создаем текст для настройки
-        const label = this.add.text(x - 150, y, text, {
-            fontSize: '32px',
-            fill: '#ffffff'
-        }).setOrigin(0, 0.5);
-        
-        // Создаем переключатель
-        // Если изображения для чекбоксов не загружены, используем простые прямоугольники
-        let toggle;
-        
-        if (this.textures.exists('checkbox_on') && this.textures.exists('checkbox_off')) {
-            toggle = this.add.image(x + 150, y, initialState ? 'checkbox_on' : 'checkbox_off');
-            toggle.setScale(0.8);
-        } else {
-            // Создаем прямоугольник для переключателя
-            toggle = this.add.rectangle(x + 150, y, 60, 60, initialState ? 0x00ff00 : 0xff0000, 0.8);
-            toggle.setStrokeStyle(2, 0xffffff);
-            
-            // Добавляем текст внутри переключателя
-            const toggleText = this.add.text(x + 150, y, initialState ? 'Вкл' : 'Выкл', {
-                fontSize: '24px',
-                fill: '#ffffff'
-            }).setOrigin(0.5);
-            
-            // Сохраняем ссылку на текст в переключателе
-            toggle.text = toggleText;
-        }
-        
-        // Сохраняем текущее состояние
-        toggle.state = initialState;
-        
-        // Делаем переключатель интерактивным
-        toggle.setInteractive();
-        
-        // Добавляем обработчик клика
-        toggle.on('pointerup', () => {
-            // Инвертируем состояние
-            toggle.state = !toggle.state;
-            
-            // Обновляем внешний вид
-            if (this.textures.exists('checkbox_on') && this.textures.exists('checkbox_off')) {
-                toggle.setTexture(toggle.state ? 'checkbox_on' : 'checkbox_off');
-            } else {
-                toggle.fillColor = toggle.state ? 0x00ff00 : 0xff0000;
-                if (toggle.text) {
-                    toggle.text.setText(toggle.state ? 'Вкл' : 'Выкл');
-                }
+    // Очищаем ресурсы при уничтожении сцены
+    shutdown() {
+        // Уничтожаем все UI элементы
+        this.uiElements.forEach(element => {
+            if (element && element.destroy) {
+                element.destroy();
             }
-            
-            // Вызываем callback с новым состоянием
-            callback(toggle.state);
         });
-        
-        return { label, toggle };
+        this.uiElements = [];
     }
 }
