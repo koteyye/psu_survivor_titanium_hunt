@@ -275,13 +275,24 @@ export function showLevelCompletedUI(scene) {
 
 // Показать UI для игры окончена
 export function showGameOverUI(scene) {
-    if (scene.gameOverTitle) {
-        scene.gameOverTitle.setVisible(true);
+    // Сначала проверяем, что элементы существуют
+    if (!scene.gameOverTitle || !scene.restartText) {
+        console.error('Элементы Game Over не найдены!');
+        return;
     }
     
-    if (scene.restartText) {
-        scene.restartText.setVisible(true);
-    }
+    // Скрываем все другие UI элементы, которые могут мешать
+    if (scene.pauseTitle) scene.pauseTitle.setVisible(false);
+    if (scene.resumeText) scene.resumeText.setVisible(false);
+    if (scene.levelCompletedTitle) scene.levelCompletedTitle.setVisible(false);
+    if (scene.nextLevelText) scene.nextLevelText.setVisible(false);
+    
+    // Показываем элементы Game Over
+    scene.gameOverTitle.setVisible(true);
+    scene.restartText.setVisible(true);
+    
+    // Добавляем логирование для отладки
+    console.log('Показаны элементы Game Over');
 }
 
 // Показать UI для паузы

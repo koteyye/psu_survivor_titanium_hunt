@@ -9,11 +9,11 @@ function restartGame(scene) {
     window.gameOver = false;
     
     // Скрываем элементы Game Over
-    if (window.gameOverText) {
-        window.gameOverText.visible = false;
+    if (scene && scene.gameOverTitle) {
+        scene.gameOverTitle.setVisible(false);
     }
-    if (window.restartText) {
-        window.restartText.visible = false;
+    if (scene && scene.restartText) {
+        scene.restartText.setVisible(false);
     }
     
     // Обновляем UI через функцию updateGameUI

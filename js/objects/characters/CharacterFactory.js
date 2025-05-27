@@ -1,6 +1,6 @@
 // Фабрика для создания персонажей
 import { FrienderCharacter } from './FrienderCharacter.js';
-import { TraderCharacter } from './TraderCharacter.js';
+import { TraderCharacter } from './TraderCharacter/index.js';
 import { ZummerCharacter } from './ZummerCharacter.js';
 
 export class CharacterFactory {

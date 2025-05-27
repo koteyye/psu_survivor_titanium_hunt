@@ -56,6 +56,16 @@ function handleGameOver(scene) {
     // Проверяем нажатие пробела или R для перезапуска
     if (Phaser.Input.Keyboard.JustDown(window.spaceKey) || Phaser.Input.Keyboard.JustDown(window.rKey)) {
         console.log('Перезапуск игры...');
+        
+        // Скрываем элементы Game Over перед перезапуском
+        if (scene.gameOverTitle) {
+            scene.gameOverTitle.setVisible(false);
+        }
+        if (scene.restartText) {
+            scene.restartText.setVisible(false);
+        }
+        
+        // Перезапускаем игру
         restartGame(scene);
         return true;
     }

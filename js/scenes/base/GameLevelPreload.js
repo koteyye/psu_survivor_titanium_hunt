@@ -41,6 +41,7 @@ export function preloadLevelResources(scene) {
     scene.load.image('scoreIcon', 'game_icons/score.png');
     scene.load.image('moneyIcon', 'game_icons/money.png');
     scene.load.image('rageIcon', 'game_icons/rage.png');
+    scene.load.image('basketIcon', 'game_icons/backet.png');
     
     // Загружаем спрайтшит взрыва
     // Размер файла 1024x1536, разбиваем на сетку 4x6 кадров по 256x256
