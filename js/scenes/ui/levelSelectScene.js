@@ -88,15 +88,18 @@ export class LevelSelectScene extends Phaser.Scene {
                         window.menuMusic.stop();
                     }
                     
-                    // Запускаем выбранный уровень
+                    // Получаем выбранного персонажа
+                    const selectedCharacter = localStorage.getItem('selectedCharacter') || 'friender_s';
+                    
+                    // Запускаем выбранный уровень с передачей информации о выбранном персонаже
                     // Используем явные ключи сцен вместо получения из level.scene
                     if (level.id === 1) {
-                        this.scene.start('MainScene', { levelId: level.id });
+                        this.scene.start('MainScene', { levelId: level.id, character: selectedCharacter });
                     } else if (level.id === 2) {
-                        this.scene.start('Level2Scene', { levelId: level.id });
+                        this.scene.start('Level2Scene', { levelId: level.id, character: selectedCharacter });
                     } else if (level.id === 3) {
                         // Запускаем третий уровень
-                        this.scene.start('Level3Scene', { levelId: level.id });
+                        this.scene.start('Level3Scene', { levelId: level.id, character: selectedCharacter });
                     }
                 });
             }

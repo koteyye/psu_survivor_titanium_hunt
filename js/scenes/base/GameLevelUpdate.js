@@ -112,18 +112,39 @@ function handleRestartCancel(scene) {
 
 // Функция управления игроком
 function handlePlayerMovement(scene) {
-    // Получаем скорость игрока из конфигурации уровня или используем значение по умолчанию
-    const playerSpeed = scene.levelConfig ? scene.levelConfig.playerSpeed : 450;
-    
-    if (window.cursors.left.isDown) {
-        window.player.setVelocityX(-playerSpeed);
-        window.player.setAngle(-15);
-    } else if (window.cursors.right.isDown) {
-        window.player.setVelocityX(playerSpeed);
-        window.player.setAngle(15);
+    // Если используем новую систему персонажей
+    if (window.gameCharacter) {
+        // Вызываем метод update персонажа
+        window.gameCharacter.update();
+        
+        // Добавляем наклон спрайта при движении
+        if (window.cursors.left.isDown) {
+            window.player.setAngle(-15);
+        } else if (window.cursors.right.isDown) {
+            window.player.setAngle(15);
+        } else {
+            window.player.setAngle(0);
+        }
     } else {
-        window.player.setVelocityX(0);
-        window.player.setAngle(0);
+        // Запасной вариант - старая логика
+        // Получаем скорость игрока из конфигурации уровня или используем значение по умолчанию
+        let playerSpeed = scene.levelConfig ? scene.levelConfig.playerSpeed : 450;
+        
+        // Применяем бонус скорости, если он есть у персонажа
+        if (window.player.speedBonus) {
+            playerSpeed *= window.player.speedBonus;
+        }
+        
+        if (window.cursors.left.isDown) {
+            window.player.setVelocityX(-playerSpeed);
+            window.player.setAngle(-15);
+        } else if (window.cursors.right.isDown) {
+            window.player.setVelocityX(playerSpeed);
+            window.player.setAngle(15);
+        } else {
+            window.player.setVelocityX(0);
+            window.player.setAngle(0);
+        }
     }
 }
 
@@ -145,6 +166,8 @@ function handleItemSpawning(scene, time) {
 
 // Функция обновления объектов
 function updateGameObjects(scene) {
+    // Обновление персонажа уже происходит в handlePlayerMovement
+    
     // Обновление всех типов предметов
     [window.goodItems, window.badItems, window.veryGoodItems].forEach(group => {
         if (group && group.getChildren) {

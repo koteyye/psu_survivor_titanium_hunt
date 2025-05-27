@@ -58,18 +58,13 @@ export class MenuScene extends Phaser.Scene {
         
         // Создаем кнопки меню с использованием CyberButton
         const startButton = new CyberButton(
-            this, 
-            960, 
-            400, 
-            'Начать игру', 
+            this,
+            960,
+            400,
+            'Начать игру',
             () => {
-                // Останавливаем музыку меню перед переходом в игру
-                if (window.menuMusic && window.menuMusic.isPlaying) {
-                    window.menuMusic.stop();
-                }
-                
-                // Всегда начинаем с первого уровня (MainScene)
-                this.scene.start('MainScene', { levelId: 1 });
+                // Переходим на сцену выбора персонажа БЕЗ остановки музыки
+                this.scene.start('CharacterSelectScene');
             },
             {
                 width: 400,
@@ -80,28 +75,11 @@ export class MenuScene extends Phaser.Scene {
         );
         this.uiElements.push(startButton);
         
-        const levelSelectButton = new CyberButton(
-            this, 
-            960, 
-            500, 
-            'Выбор уровня', 
-            () => {
-                // Переходим на сцену выбора уровня БЕЗ остановки музыки
-                this.scene.start('LevelSelectScene');
-            },
-            {
-                width: 400,
-                height: 80,
-                fontSize: 32
-            }
-        );
-        this.uiElements.push(levelSelectButton);
-        
         const settingsButton = new CyberButton(
-            this, 
-            960, 
-            600, 
-            'Настройки', 
+            this,
+            960,
+            500,
+            'Настройки',
             () => {
                 // Переходим на сцену настроек БЕЗ остановки музыки
                 this.scene.start('SettingsScene');
@@ -117,10 +95,10 @@ export class MenuScene extends Phaser.Scene {
         this.uiElements.push(settingsButton);
         
         const aboutButton = new CyberButton(
-            this, 
-            960, 
-            700, 
-            'Об игре', 
+            this,
+            960,
+            600,
+            'Об игре',
             () => {
                 // Переходим на сцену "Об игре" БЕЗ остановки музыки
                 this.scene.start('AboutScene');

@@ -24,8 +24,11 @@ export function preloadLevelResources(scene) {
     scene.load.audio(`backgroundMusic_level${scene.levelId}`, scene.musicPath);
     
     // Загружаем звуки
-    scene.load.audio('explosionSound', 'sounds/gameplay/explosion.wav');
-    scene.load.audio('nyamnyamSound', 'sounds/gameplay/nyamnyam.wav');
+    scene.load.audio('explosionSound', 'sounds/gameplay/effects/explosion.wav');
+
+    
+    // Загружаем звуки персонажей
+    preloadCharacterSounds(scene);
     
     // Загружаем игровые объекты
     scene.load.image('player', `images/gameplay/player.png?v=${cacheBuster}`);
@@ -94,4 +97,33 @@ function setupLoadHandlers(scene) {
     scene.load.on('progress', function(value) {
         console.log(`Прогресс загрузки: ${Math.round(value * 100)}%`);
     });
+}
+
+// Функция загрузки звуков персонажей
+function preloadCharacterSounds(scene) {
+    // Получаем выбранного персонажа
+    const selectedCharacter = scene.selectedCharacter || localStorage.getItem('selectedCharacter') || 'friender_s';
+    
+    // Определяем ID персонажа для звуков
+    let characterSoundId;
+    if (selectedCharacter === 'friender_s') {
+        characterSoundId = 'friender';
+    } else if (selectedCharacter === 'trader') {
+        characterSoundId = 'rabbit';
+    } else if (selectedCharacter === 'zummer') {
+        characterSoundId = 'zoomer';
+    } else {
+        characterSoundId = 'friender'; // По умолчанию
+    }
+    
+    console.log(`Загружаем звуки для персонажа: ${characterSoundId}`);
+    
+    // Загружаем звуки для выбранного персонажа
+    const basePath = `sounds/gameplay/replicas/${characterSoundId}`;
+    scene.load.audio(`gameplay/replicas/${characterSoundId}/select`, `${basePath}/select.mp3`);
+    scene.load.audio(`gameplay/replicas/${characterSoundId}/bad_psu_1`, `${basePath}/bad_psu_1.mp3`);
+    scene.load.audio(`gameplay/replicas/${characterSoundId}/bad_psu_2`, `${basePath}/bad_psu_2.mp3`);
+    scene.load.audio(`gameplay/replicas/${characterSoundId}/super_psu_1`, `${basePath}/super_psu_1.mp3`);
+    scene.load.audio(`gameplay/replicas/${characterSoundId}/super_psu_2`, `${basePath}/super_psu_2.mp3`);
+    scene.load.audio(`gameplay/replicas/${characterSoundId}/dead`, `${basePath}/dead.mp3`);
 }

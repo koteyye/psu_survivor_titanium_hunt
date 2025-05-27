@@ -3,6 +3,7 @@
 import { showLevelInfo } from '../../utils/levelUtils.js';
 import { createExplosionAnimation } from '../../utils/animationUtils.js';
 import { createGameUI, showLevelCompletedUI, updateGameUI } from './GameLevelUI.js';
+import { CharacterFactory } from '../../objects/characters/index.js';
 
 // Основная функция создания игровых объектов
 export function createLevelObjects(scene) {
@@ -44,7 +45,7 @@ export function createLevelObjects(scene) {
 function createGameEntities(scene) {
     // Добавляем звуковые эффекты
     window.explosionSound = scene.sound.add('explosionSound', { volume: 0.8 });
-    window.nyamnyamSound = scene.sound.add('nyamnyamSound', { volume: 0.8 });
+    // Звук nyamnyamSound больше не используется
     
     // Создание анимации взрыва
     createExplosionAnimation(scene);
@@ -88,34 +89,42 @@ function createPlayer(scene) {
     try {
         console.log('Начинаем создание игрока...');
         
+        // Получаем выбранного персонажа
+        const characterTexture = scene.selectedCharacter || localStorage.getItem('selectedCharacter') || 'friender_s';
+        console.log(`Создаем игрока с текстурой: ${characterTexture}`);
+        
         // Проверяем все доступные текстуры
         console.log('Доступные текстуры:', Object.keys(scene.textures.list));
         
-        // Проверяем текстуру игрока
-        if (scene.textures.exists('player')) {
-            const source = scene.textures.get('player').source[0];
-            console.log('Текстура player существует!');
-            console.log('Размеры текстуры player:', source.width, 'x', source.height);
+        // Проверяем текстуру выбранного персонажа
+        if (scene.textures.exists(characterTexture)) {
+            const source = scene.textures.get(characterTexture).source[0];
+            console.log(`Текстура ${characterTexture} существует!`);
+            console.log(`Размеры текстуры ${characterTexture}:`, source.width, 'x', source.height);
             
-            // Создаем спрайт игрока
-            window.player = scene.physics.add.sprite(960, 900, 'player');
-            console.log('Спрайт игрока создан с текстурой player');
+            // Создаем персонажа с помощью фабрики
+            window.gameCharacter = CharacterFactory.createCharacter(scene, 960, 900, characterTexture);
+            console.log(`Персонаж создан с текстурой ${characterTexture}`);
+            
+            // Воспроизводим звук выбора персонажа
+            window.gameCharacter.playSelectSound();
         } else {
-            console.log('Текстура player НЕ существует, создаем заглушку');
+            console.log(`Текстура ${characterTexture} НЕ существует, используем запасную текстуру player`);
+            // Создаем спрайт игрока напрямую (запасной вариант)
             window.player = scene.physics.add.sprite(960, 900, 'player');
+            window.player.setCollideWorldBounds(true);
+            window.player.setDisplaySize(200, 300);
         }
         
-        // Настраиваем спрайт игрока
-        window.player.setCollideWorldBounds(true);
-        window.player.setDisplaySize(200, 300);
-        
         // Выводим информацию о спрайте
-        console.log('Размеры спрайта игрока:', window.player.width, 'x', window.player.height);
-        console.log('Видимость спрайта игрока:', window.player.visible);
-        
-        // Принудительно делаем спрайт видимым и устанавливаем прозрачность
-        window.player.setVisible(true);
-        window.player.setAlpha(1);
+        if (window.player) {
+            console.log('Размеры спрайта игрока:', window.player.width, 'x', window.player.height);
+            console.log('Видимость спрайта игрока:', window.player.visible);
+            
+            // Принудительно делаем спрайт видимым и устанавливаем прозрачность
+            window.player.setVisible(true);
+            window.player.setAlpha(1);
+        }
     } catch (e) {
         console.error('Ошибка при создании игрока:', e);
         console.error(e.stack);

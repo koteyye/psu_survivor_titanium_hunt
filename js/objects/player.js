@@ -28,10 +28,29 @@ function restartGame(scene) {
     }
     
     // Восстанавливаем игрока
-    window.player.clearTint();
-    window.player.setPosition(960, 900);
-    window.player.setVelocity(0, 0); // Сбрасываем скорость игрока
-    window.player.setAngle(0); // Сбрасываем угол наклона
+    if (window.player) {
+        window.player.clearTint();
+        window.player.setPosition(960, 900);
+        window.player.setVelocity(0, 0); // Сбрасываем скорость игрока
+        window.player.setAngle(0); // Сбрасываем угол наклона
+        
+        // Явно включаем физику для игрока
+        if (window.player.body) {
+            window.player.body.enable = true;
+        }
+    }
+    
+    // Сбрасываем состояние персонажа, если используется новая система
+    if (window.gameCharacter) {
+        // Сбрасываем специфические для персонажа состояния
+        if (window.gameCharacter.resetCombo) {
+            window.gameCharacter.resetCombo();
+        }
+        
+        if (window.gameCharacter.deactivateRageMode) {
+            window.gameCharacter.deactivateRageMode();
+        }
+    }
     
     // Сбрасываем скорость и очищаем все предметы
     [window.goodItems, window.badItems, window.veryGoodItems].forEach(group => {
@@ -66,9 +85,6 @@ function restartGame(scene) {
     
     // Всегда возобновляем физику при перезапуске
     scene.physics.resume();
-    
-    // Явно включаем физику для игрока
-    window.player.body.enable = true;
     
     // Сбрасываем состояние паузы
     if (scene.isPaused) {

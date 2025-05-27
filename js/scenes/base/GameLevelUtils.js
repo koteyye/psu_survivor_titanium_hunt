@@ -170,8 +170,16 @@ export function collectGoodItem(player, item) {
     
     // Для обычного хорошего блока не воспроизводим звук "нямням"
     
+    // Базовые очки за предмет
+    let points = 10;
+    
+    // Применяем бонус денег, если он есть у персонажа (Торговец)
+    if (player.moneyBonus) {
+        points = Math.floor(points * player.moneyBonus);
+    }
+    
     // Увеличиваем счет
-    window.score += 10;
+    window.score += points;
     
     // Обновляем UI
     if (window.scoreText) {
@@ -183,15 +191,25 @@ export function collectGoodItem(player, item) {
 export function collectVeryGoodItem(player, item) {
     item.disableBody(true, true);
     
-    // Проверяем настройки звука
-    const soundEnabled = localStorage.getItem('soundEnabled') === 'true';
-    if (soundEnabled) {
-        window.nyamnyamSound.play();
+    // Звук nyamnyamSound больше не используется
+    
+    // Базовые очки и здоровье за предмет
+    let points = 20;
+    let healthBonus = 10;
+    
+    // Применяем бонус денег, если он есть у персонажа (Торговец)
+    if (player.moneyBonus) {
+        points = Math.floor(points * player.moneyBonus);
+    }
+    
+    // Если персонаж Фриндер, увеличиваем бонус здоровья
+    if (player.speedBonus) {
+        healthBonus = 15; // Фриндер получает больше здоровья
     }
     
     // Увеличиваем счет и здоровье
-    window.score += 20;
-    window.health = Math.min(window.health + 10, 100);
+    window.score += points;
+    window.health = Math.min(window.health + healthBonus, 100);
     
     // Обновляем UI
     if (window.scoreText) {
@@ -221,8 +239,16 @@ export function hitBadItem(scene, player, item) {
         window.explosionSound.play();
     }
     
+    // Базовый урон
+    let damage = 20;
+    
+    // Если персонаж Зуммер, уменьшаем получаемый урон
+    if (player.attackSpeedBonus) {
+        damage = 15; // Зуммер получает меньше урона
+    }
+    
     // Уменьшаем здоровье
-    window.health -= 20;
+    window.health -= damage;
     
     // Обновляем UI здоровья через функцию updateGameUI
     if (window.gameScene) {

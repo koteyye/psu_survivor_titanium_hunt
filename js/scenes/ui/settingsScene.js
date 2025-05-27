@@ -120,9 +120,7 @@ export class SettingsScene extends Phaser.Scene {
                     if (window.explosionSound) {
                         window.explosionSound.stop();
                     }
-                    if (window.nyamnyamSound) {
-                        window.nyamnyamSound.stop();
-                    }
+                    // Звук nyamnyamSound больше не используется
                 }
             },
             {
