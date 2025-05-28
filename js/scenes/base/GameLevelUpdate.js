@@ -2,6 +2,7 @@
 
 import { spawnLevelItems } from '../../utils/levelUtils.js';
 import { restartGame } from '../../objects/player.js';
+import { updateGameUI } from './GameLevelUI.js';
 
 // Основная функция обновления игры
 export function updateLevel(scene, time) {
@@ -29,6 +30,9 @@ export function updateLevel(scene, time) {
     // Обновление игровых объектов
     updateGameObjects(scene);
     
+    // Обновление UI
+    updateGameUI(scene);
+    
     // Проверка условий завершения уровня
     checkLevelCompletion(scene, time);
 }
@@ -38,14 +42,32 @@ function initializeControls(scene) {
     if (!window.rKey) {
         window.rKey = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
     }
+    
+    // Добавляем обработку пробела для перезапуска игры
+    if (!window.spaceKey) {
+        window.spaceKey = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    }
 }
 
 // Функция обработки состояния игры "Game Over"
 function handleGameOver(scene) {
     if (!window.gameOver) return false;
     
-    if (window.cursors.space.isDown || window.rKey.isDown) {
+    // Проверяем нажатие пробела или R для перезапуска
+    if (Phaser.Input.Keyboard.JustDown(window.spaceKey) || Phaser.Input.Keyboard.JustDown(window.rKey)) {
+        console.log('Перезапуск игры...');
+        
+        // Скрываем элементы Game Over перед перезапуском
+        if (scene.gameOverTitle) {
+            scene.gameOverTitle.setVisible(false);
+        }
+        if (scene.restartText) {
+            scene.restartText.setVisible(false);
+        }
+        
+        // Перезапускаем игру
         restartGame(scene);
+        return true;
     }
     
     return true;
@@ -100,18 +122,39 @@ function handleRestartCancel(scene) {
 
 // Функция управления игроком
 function handlePlayerMovement(scene) {
-    // Получаем скорость игрока из конфигурации уровня или используем значение по умолчанию
-    const playerSpeed = scene.levelConfig ? scene.levelConfig.playerSpeed : 450;
-    
-    if (window.cursors.left.isDown) {
-        window.player.setVelocityX(-playerSpeed);
-        window.player.setAngle(-15);
-    } else if (window.cursors.right.isDown) {
-        window.player.setVelocityX(playerSpeed);
-        window.player.setAngle(15);
+    // Если используем новую систему персонажей
+    if (window.gameCharacter) {
+        // Вызываем метод update персонажа
+        window.gameCharacter.update();
+        
+        // Добавляем наклон спрайта при движении
+        if (window.cursors.left.isDown) {
+            window.player.setAngle(-15);
+        } else if (window.cursors.right.isDown) {
+            window.player.setAngle(15);
+        } else {
+            window.player.setAngle(0);
+        }
     } else {
-        window.player.setVelocityX(0);
-        window.player.setAngle(0);
+        // Запасной вариант - старая логика
+        // Получаем скорость игрока из конфигурации уровня или используем значение по умолчанию
+        let playerSpeed = scene.levelConfig ? scene.levelConfig.playerSpeed : 450;
+        
+        // Применяем бонус скорости, если он есть у персонажа
+        if (window.player.speedBonus) {
+            playerSpeed *= window.player.speedBonus;
+        }
+        
+        if (window.cursors.left.isDown) {
+            window.player.setVelocityX(-playerSpeed);
+            window.player.setAngle(-15);
+        } else if (window.cursors.right.isDown) {
+            window.player.setVelocityX(playerSpeed);
+            window.player.setAngle(15);
+        } else {
+            window.player.setVelocityX(0);
+            window.player.setAngle(0);
+        }
     }
 }
 
@@ -133,6 +176,8 @@ function handleItemSpawning(scene, time) {
 
 // Функция обновления объектов
 function updateGameObjects(scene) {
+    // Обновление персонажа уже происходит в handlePlayerMovement
+    
     // Обновление всех типов предметов
     [window.goodItems, window.badItems, window.veryGoodItems].forEach(group => {
         if (group && group.getChildren) {
@@ -182,8 +227,8 @@ function checkLevelCompletion(scene, time) {
         scene.levelCompleted = true;
         
         // Показываем текст о завершении уровня
-        scene.levelCompletedText.visible = true;
-        scene.nextLevelText.visible = true;
+        scene.levelCompletedText.setVisible(true);
+        scene.nextLevelText.setVisible(true);
         
         // Ставим игру на паузу
         scene.isPaused = true;

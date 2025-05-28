@@ -30,6 +30,7 @@ export class GameLevelScene extends Phaser.Scene {
         this.levelConfig = null;
         this.levelStartTime = 0;
         this.levelCompleted = false;
+        this.selectedCharacter = null;
         
         // Параметры уровня
         this.levelParams = config.levelParams || {};
@@ -46,11 +47,21 @@ export class GameLevelScene extends Phaser.Scene {
             this.levelId = data.levelId;
         }
         
+        // Если передан выбранный персонаж, сохраняем его
+        if (data && data.character) {
+            this.selectedCharacter = data.character;
+        } else {
+            // Если персонаж не передан, пытаемся получить его из localStorage
+            this.selectedCharacter = localStorage.getItem('selectedCharacter') || 'friender_s';
+        }
+        
         // Получаем конфигурацию уровня
         this.levelConfig = initializeLevel(this, this.levelId);
         
         // Сбрасываем флаг завершения уровня
         this.levelCompleted = false;
+        
+        console.log(`Уровень ${this.levelId} инициализирован с персонажем: ${this.selectedCharacter}`);
     }
 
     // Загрузка ресурсов
@@ -95,15 +106,33 @@ export class GameLevelScene extends Phaser.Scene {
     }
     
     collectGoodItem(player, item) {
-        collectGoodItem(player, item);
+        // Если используем новую систему персонажей
+        if (window.gameCharacter) {
+            window.gameCharacter.collectGoodItem(item);
+        } else {
+            // Запасной вариант - старая функция
+            collectGoodItem(player, item);
+        }
     }
     
     collectVeryGoodItem(player, item) {
-        collectVeryGoodItem(player, item);
+        // Если используем новую систему персонажей
+        if (window.gameCharacter) {
+            window.gameCharacter.collectVeryGoodItem(item);
+        } else {
+            // Запасной вариант - старая функция
+            collectVeryGoodItem(player, item);
+        }
     }
     
     hitBadItem(player, item) {
-        hitBadItem(this, player, item);
+        // Если используем новую систему персонажей
+        if (window.gameCharacter) {
+            window.gameCharacter.hitBadItem(item);
+        } else {
+            // Запасной вариант - старая функция
+            hitBadItem(this, player, item);
+        }
     }
     
     // Методы для проверки условий

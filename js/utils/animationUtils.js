@@ -17,23 +17,19 @@ export function createExplosionAnimation(scene) {
             scene.anims.remove('explode');
         }
         
-        // Создаем анимацию с явным указанием порядка кадров
+        // Создаем анимацию с учетом расположения кадров в сетке 3х4
+        // Кадры идут слева направо, сверху вниз:
+        // 0  1  2
+        // 3  4  5
+        // 6  7  8
+        // 9 10 11
         scene.anims.create({
             key: 'explode',
-            frames: [
-                { key: 'explosion', frame: 0 },
-                { key: 'explosion', frame: 1 },
-                { key: 'explosion', frame: 2 },
-                { key: 'explosion', frame: 3 },
-                { key: 'explosion', frame: 4 },
-                { key: 'explosion', frame: 5 },
-                { key: 'explosion', frame: 6 },
-                { key: 'explosion', frame: 7 },
-                { key: 'explosion', frame: 8 },
-                { key: 'explosion', frame: 9 },
-                { key: 'explosion', frame: 10 },
-                { key: 'explosion', frame: 11 }
-            ],
+            frames: scene.anims.generateFrameNumbers('explosion', {
+                start: 0,
+                end: 11,
+                // Не указываем first, чтобы кадры шли по порядку от 0 до 11
+            }),
             frameRate: 15,
             repeat: 0
         });
@@ -56,7 +52,7 @@ export function getExplosionSpriteConfig() {
     return {
         frameWidth: 341, // Фиксированное значение (1024 / 3 ≈ 341.33)
         frameHeight: 384, // Фиксированное значение (1536 / 4 = 384)
-        margin: 0,
-        spacing: 0
+        margin: 30,
+        spacing: -38
     };
 }

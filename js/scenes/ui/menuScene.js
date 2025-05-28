@@ -1,8 +1,11 @@
 // Сцена главного меню
 import { levelManager } from '../../utils/levelManager.js';
+import { CyberButton, CyberTitle } from '../../ui/index.js';
+
 export class MenuScene extends Phaser.Scene {
     constructor() {
         super({ key: 'MenuScene' });
+        this.uiElements = []; // Массив для хранения UI элементов
     }
 
     preload() {
@@ -11,6 +14,10 @@ export class MenuScene extends Phaser.Scene {
         
         // Загружаем музыку для меню
         this.load.audio('menuMusic', 'assets/sounds/menu/menu_background.wav');
+        
+        // Загружаем иконки для UI
+        this.load.image('soundIcon', 'assets/ui/sound.png');
+        this.load.image('healthIcon', 'assets/ui/health.png');
     }
 
     create() {
@@ -35,80 +42,86 @@ export class MenuScene extends Phaser.Scene {
             }
         }
         
-        // Добавляем заголовок игры
-        this.add.text(960, 200, 'PSU Survivor: Titanium Hunt', {
-            fontSize: '64px',
-            fontStyle: 'bold',
-            fill: '#ffffff',
-            stroke: '#000000',
-            strokeThickness: 6
-        }).setOrigin(0.5);
-        
-        // Создаем кнопки меню
-        this.createButton(960, 400, 'Начать игру', () => {
-            // Останавливаем музыку меню перед переходом в игру
-            if (window.menuMusic && window.menuMusic.isPlaying) {
-                window.menuMusic.stop();
+        // Добавляем заголовок игры с использованием CyberTitle
+        const title = new CyberTitle(
+            this, 
+            960, 
+            200, 
+            'PSU Survivor: Titanium Hunt', 
+            { 
+                fontSize: 64,
+                glowIntensity: 1.5,
+                pulseAnimation: true
             }
-            
-            // Всегда начинаем с первого уровня (MainScene)
-            // Используем явно 'MainScene' вместо получения из levelManager
-            this.scene.start('MainScene', { levelId: 1 });
-        });
+        );
+        this.uiElements.push(title);
         
-        this.createButton(960, 480, 'Выбор уровня', () => {
-            // Переходим на сцену выбора уровня БЕЗ остановки музыки
-            this.scene.start('LevelSelectScene');
-        });
+        // Создаем кнопки меню с использованием CyberButton
+        const startButton = new CyberButton(
+            this,
+            960,
+            380, // Уменьшаем Y-координату для первой кнопки
+            'Начать игру',
+            () => {
+                // Переходим на сцену выбора персонажа БЕЗ остановки музыки
+                this.scene.start('CharacterSelectScene');
+            },
+            {
+                width: 400,
+                height: 80,
+                fontSize: 32,
+                pulseAnimation: true
+            }
+        );
+        this.uiElements.push(startButton);
         
-        this.createButton(960, 560, 'Настройки', () => {
-            // Переходим на сцену настроек БЕЗ остановки музыки
-            this.scene.start('SettingsScene');
-        });
+        const settingsButton = new CyberButton(
+            this,
+            960,
+            520, // Увеличиваем Y-координату для второй кнопки
+            'Настройки',
+            () => {
+                // Переходим на сцену настроек БЕЗ остановки музыки
+                this.scene.start('SettingsScene');
+            },
+            {
+                width: 400,
+                height: 80,
+                fontSize: 32
+            }
+        );
+        // Добавляем иконку к кнопке настроек
+        settingsButton.addIcon('⚙️');
+        this.uiElements.push(settingsButton);
         
-        this.createButton(960, 640, 'Об игре', () => {
-            // Переходим на сцену "Об игре" БЕЗ остановки музыки
-            this.scene.start('AboutScene');
-        });
+        const aboutButton = new CyberButton(
+            this,
+            960,
+            660, // Увеличиваем Y-координату для третьей кнопки
+            'Об игре',
+            () => {
+                // Переходим на сцену "Об игре" БЕЗ остановки музыки
+                this.scene.start('AboutScene');
+            },
+            {
+                width: 400,
+                height: 80,
+                fontSize: 32
+            }
+        );
+        // Добавляем иконку к кнопке "Об игре"
+        aboutButton.addIcon('ℹ️');
+        this.uiElements.push(aboutButton);
     }
     
-    // Вспомогательная функция для создания кнопок
-    createButton(x, y, text, callback) {
-        // Создаем прямоугольник для кнопки
-        const button = this.add.rectangle(x, y, 400, 80, 0x4a6fa5, 0.8);
-        button.setStrokeStyle(2, 0xffffff);
-        
-        // Добавляем текст на кнопку
-        const buttonText = this.add.text(x, y, text, {
-            fontSize: '32px',
-            fill: '#ffffff'
-        }).setOrigin(0.5);
-        
-        // Делаем кнопку интерактивной
-        button.setInteractive();
-        
-        // Добавляем эффекты при наведении и клике
-        button.on('pointerover', () => {
-            button.fillColor = 0x5a8ac5;
-            buttonText.setStyle({ fill: '#ffffff' });
+    // Очищаем ресурсы при уничтожении сцены
+    shutdown() {
+        // Уничтожаем все UI элементы
+        this.uiElements.forEach(element => {
+            if (element && element.destroy) {
+                element.destroy();
+            }
         });
-        
-        button.on('pointerout', () => {
-            button.fillColor = 0x4a6fa5;
-            buttonText.setStyle({ fill: '#ffffff' });
-        });
-        
-        button.on('pointerdown', () => {
-            button.fillColor = 0x3a5f95;
-            buttonText.setStyle({ fill: '#cccccc' });
-        });
-        
-        button.on('pointerup', () => {
-            button.fillColor = 0x5a8ac5;
-            buttonText.setStyle({ fill: '#ffffff' });
-            callback();
-        });
-        
-        return { button, text: buttonText };
+        this.uiElements = [];
     }
 }

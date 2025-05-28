@@ -1,6 +1,7 @@
 // Утилиты для работы с уровнями
 import { levelManager } from './levelManager.js';
 import { progressManager, ACHIEVEMENTS } from './progressManager.js';
+import { CyberTitle } from '../ui/index.js';
 
 // Функция для инициализации уровня
 export function initializeLevel(scene, levelId = 1) {
@@ -94,25 +95,46 @@ export function showLevelInfo(scene, levelId) {
     
     if (!levelInfo || !levelConfig) return null;
     
-    // Добавляем текст с информацией о текущем уровне
-    const levelNameText = scene.add.text(960, 40, levelInfo.name, {
-        fontSize: '36px',
-        fill: '#ffffff',
-        backgroundColor: '#000000',
-        padding: { x: 15, y: 8 }
-    }).setOrigin(0.5);
+    // Добавляем текст с информацией о текущем уровне в киберпанк-стиле
+    const levelNameText = new CyberTitle(
+        scene,
+        960,
+        60, // Размещаем вверху экрана
+        levelInfo.name,
+        {
+            fontSize: 42,
+            fontFamily: 'Orbitron, sans-serif',
+            color: '#00f7ff',
+            glowIntensity: 1.5,
+            pulseAnimation: true
+        }
+    );
     
-    // Добавляем текст с целью уровня
-    const levelGoalText = scene.add.text(960, 100, `Цель: набрать ${levelConfig.scoreToComplete} очков`, {
-        fontSize: '28px',
-        fill: '#ffffff',
-        backgroundColor: '#000000',
-        padding: { x: 15, y: 8 }
-    }).setOrigin(0.5);
+    // Добавляем текст с целью уровня в киберпанк-стиле
+    const levelGoalText = new CyberTitle(
+        scene,
+        960,
+        130, // Размещаем под названием уровня
+        `Цель: набрать ${levelConfig.scoreToComplete} очков`,
+        {
+            fontSize: 28,
+            fontFamily: 'Orbitron, sans-serif',
+            color: '#00f7ff',
+            glowIntensity: 1,
+            backgroundColor: '#0a0f1c80', // Полупрозрачный фон
+            padding: { x: 20, y: 10 }
+        }
+    );
+    
+    // Добавляем элементы в массив UI элементов сцены, если он существует
+    if (scene.uiElements) {
+        scene.uiElements.push(levelNameText);
+        scene.uiElements.push(levelGoalText);
+    }
     
     // Скрываем текст цели через 5 секунд
     scene.time.delayedCall(5000, () => {
-        levelGoalText.destroy();
+        levelGoalText.setVisible(false);
     });
     
     return { levelNameText, levelGoalText };

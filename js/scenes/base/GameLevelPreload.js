@@ -24,14 +24,24 @@ export function preloadLevelResources(scene) {
     scene.load.audio(`backgroundMusic_level${scene.levelId}`, scene.musicPath);
     
     // Загружаем звуки
-    scene.load.audio('explosionSound', 'sounds/gameplay/explosion.wav');
-    scene.load.audio('nyamnyamSound', 'sounds/gameplay/nyamnyam.wav');
+    scene.load.audio('explosionSound', 'sounds/gameplay/effects/explosion.wav');
+
+    
+    // Загружаем звуки персонажей
+    preloadCharacterSounds(scene);
     
     // Загружаем игровые объекты
     scene.load.image('player', `images/gameplay/player.png?v=${cacheBuster}`);
     scene.load.image('goodItem', `images/gameplay/good_psu.png?v=${cacheBuster}`);
     scene.load.image('badItem', `images/gameplay/bad_psu.png?v=${cacheBuster}`);
     scene.load.image('veryGoodItem', `images/gameplay/very_good_psu.png?v=${cacheBuster}`);
+    
+    // Загружаем иконки для UI
+    scene.load.image('healthIcon', 'game_icons/health.png');
+    scene.load.image('scoreIcon', 'game_icons/score.png');
+    scene.load.image('moneyIcon', 'game_icons/money.png');
+    scene.load.image('rageIcon', 'game_icons/rage.png');
+    scene.load.image('basketIcon', 'game_icons/backet.png');
     
     // Загружаем спрайтшит взрыва
     // Размер файла 1024x1536, разбиваем на сетку 4x6 кадров по 256x256
@@ -88,4 +98,33 @@ function setupLoadHandlers(scene) {
     scene.load.on('progress', function(value) {
         console.log(`Прогресс загрузки: ${Math.round(value * 100)}%`);
     });
+}
+
+// Функция загрузки звуков персонажей
+function preloadCharacterSounds(scene) {
+    // Получаем выбранного персонажа
+    const selectedCharacter = scene.selectedCharacter || localStorage.getItem('selectedCharacter') || 'friender_s';
+    
+    // Определяем ID персонажа для звуков
+    let characterSoundId;
+    if (selectedCharacter === 'friender_s') {
+        characterSoundId = 'friender';
+    } else if (selectedCharacter === 'trader') {
+        characterSoundId = 'rabbit';
+    } else if (selectedCharacter === 'zummer') {
+        characterSoundId = 'zoomer';
+    } else {
+        characterSoundId = 'friender'; // По умолчанию
+    }
+    
+    console.log(`Загружаем звуки для персонажа: ${characterSoundId}`);
+    
+    // Загружаем звуки для выбранного персонажа
+    const basePath = `sounds/gameplay/replicas/${characterSoundId}`;
+    scene.load.audio(`gameplay/replicas/${characterSoundId}/select`, `${basePath}/select.mp3`);
+    scene.load.audio(`gameplay/replicas/${characterSoundId}/bad_psu_1`, `${basePath}/bad_psu_1.mp3`);
+    scene.load.audio(`gameplay/replicas/${characterSoundId}/bad_psu_2`, `${basePath}/bad_psu_2.mp3`);
+    scene.load.audio(`gameplay/replicas/${characterSoundId}/super_psu_1`, `${basePath}/super_psu_1.mp3`);
+    scene.load.audio(`gameplay/replicas/${characterSoundId}/super_psu_2`, `${basePath}/super_psu_2.mp3`);
+    scene.load.audio(`gameplay/replicas/${characterSoundId}/dead`, `${basePath}/dead.mp3`);
 }

@@ -1,6 +1,7 @@
 // Вспомогательные функции для игрового уровня
 
 import { goToNextLevel as utilsGoToNextLevel } from '../../utils/levelUtils.js';
+import { updateGameUI, showGameOverUI } from './GameLevelUI.js';
 
 // Функция для переключения паузы
 export function togglePause(scene) {
@@ -33,11 +34,7 @@ export function togglePause(scene) {
 export function handleResize(scene, gameSize) {
     // Обновляем позиции текстовых элементов
     if (window.scoreText) {
-        window.scoreText.setPosition(40, 40);
-    }
-    
-    if (window.healthText) {
-        window.healthText.setPosition(40, 100);
+        window.scoreText.setPosition(80, 40);
     }
     
     if (window.gameOverText) {
@@ -173,27 +170,56 @@ export function collectGoodItem(player, item) {
     
     // Для обычного хорошего блока не воспроизводим звук "нямням"
     
+    // Базовые очки за предмет
+    let points = 10;
+    
+    // Применяем бонус денег, если он есть у персонажа (Торговец)
+    if (player.moneyBonus) {
+        points = Math.floor(points * player.moneyBonus);
+    }
+    
     // Увеличиваем счет
-    window.score += 10;
-    window.scoreText.setText('Очки: ' + window.score);
+    window.score += points;
+    
+    // Обновляем UI
+    if (window.scoreText) {
+        window.scoreText.setText('Очки: ' + window.score);
+    }
 }
 
 // Функция для сбора очень хорошего предмета
 export function collectVeryGoodItem(player, item) {
     item.disableBody(true, true);
     
-    // Проверяем настройки звука
-    const soundEnabled = localStorage.getItem('soundEnabled') === 'true';
-    if (soundEnabled) {
-        window.nyamnyamSound.play();
+    // Звук nyamnyamSound больше не используется
+    
+    // Базовые очки и здоровье за предмет
+    let points = 20;
+    let healthBonus = 10;
+    
+    // Применяем бонус денег, если он есть у персонажа (Торговец)
+    if (player.moneyBonus) {
+        points = Math.floor(points * player.moneyBonus);
+    }
+    
+    // Если персонаж Фриндер, увеличиваем бонус здоровья
+    if (player.speedBonus) {
+        healthBonus = 15; // Фриндер получает больше здоровья
     }
     
     // Увеличиваем счет и здоровье
-    window.score += 20;
-    window.scoreText.setText('Очки: ' + window.score);
+    window.score += points;
+    window.health = Math.min(window.health + healthBonus, 100);
     
-    window.health = Math.min(window.health + 10, 100);
-    window.healthText.setText('Здоровье: ' + window.health);
+    // Обновляем UI
+    if (window.scoreText) {
+        window.scoreText.setText('Очки: ' + window.score);
+    }
+    
+    // Обновляем UI здоровья через функцию updateGameUI
+    if (window.gameScene) {
+        updateGameUI(window.gameScene);
+    }
 }
 
 // Функция для столкновения с плохим предметом
@@ -213,19 +239,31 @@ export function hitBadItem(scene, player, item) {
         window.explosionSound.play();
     }
     
+    // Базовый урон
+    let damage = 20;
+    
+    // Если персонаж Зуммер, уменьшаем получаемый урон
+    if (player.attackSpeedBonus) {
+        damage = 15; // Зуммер получает меньше урона
+    }
+    
     // Уменьшаем здоровье
-    window.health -= 20;
-    window.healthText.setText('Здоровье: ' + window.health);
+    window.health -= damage;
+    
+    // Обновляем UI здоровья через функцию updateGameUI
+    if (window.gameScene) {
+        updateGameUI(window.gameScene);
+    }
     
     // Проверяем, не закончилась ли игра
     if (window.health <= 0) {
         window.health = 0;
-        window.healthText.setText('Здоровье: 0');
         window.gameOver = true;
         
-        // Показываем текст окончания игры
-        window.gameOverText.visible = true;
-        window.restartText.visible = true;
+        // Показываем UI окончания игры
+        if (window.gameScene) {
+            showGameOverUI(window.gameScene);
+        }
         
         // Останавливаем игру
         scene.physics.pause();

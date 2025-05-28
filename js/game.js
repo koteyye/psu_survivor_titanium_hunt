@@ -5,6 +5,7 @@ import { MenuScene } from './scenes/ui/menuScene.js';
 import { SettingsScene } from './scenes/ui/settingsScene.js';
 import { AboutScene } from './scenes/ui/aboutScene.js';
 import { LevelSelectScene } from './scenes/ui/levelSelectScene.js';
+import { CharacterSelectScene } from './scenes/ui/characterSelectScene.js';
 import { levelManager } from './utils/levelManager.js';
 import { progressManager } from './utils/progressManager.js';
 
@@ -27,7 +28,7 @@ window.explosions = null;
 window.backgroundMusic = null;
 window.menuMusic = null;
 window.explosionSound = null;
-window.nyamnyamSound = null;
+// Звук nyamnyamSound больше не используется
 window.gameScene = null;
 window.rKey = null;
 window.escKey = null;
@@ -35,7 +36,7 @@ window.escKey = null;
 // Обновляем конфигурацию с импортированными сценами
 const gameConfig = {
     ...config,
-    scene: [MenuScene, MainScene, Level2Scene, Level3Scene, SettingsScene, AboutScene, LevelSelectScene]
+    scene: [MenuScene, CharacterSelectScene, MainScene, Level2Scene, Level3Scene, SettingsScene, AboutScene, LevelSelectScene]
 };
 
 // Инициализируем менеджеры уровней и прогресса

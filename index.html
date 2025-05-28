@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PSU Survivor: Titanium Hunt</title>
+    <!-- Добавляем шрифт Orbitron для киберпанк-стиля -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             margin: 0;
@@ -12,7 +14,9 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #222;
+            background-color: #0a0f1c;
+            font-family: 'Orbitron', sans-serif;
+            color: #00f7ff;
         }
         canvas {
             display: block;
@@ -24,6 +28,8 @@
 </head>
 <body>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
+    <!-- Добавляем плагин Rex UI для скругленных углов -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser3-rex-plugins@1.1.79/dist/rexuiplugin.min.js"></script>
     <script type="module" src="js/game.js"></script>
 </body>
 </html>

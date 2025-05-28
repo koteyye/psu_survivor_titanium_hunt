@@ -34,11 +34,7 @@ function collectVeryGoodItem(player, item) {
         item.itemText.destroy();
     }
     
-    // Воспроизводим звук "ням-ням" если звуки включены
-    const soundEnabled = localStorage.getItem('soundEnabled') === 'true';
-    if (soundEnabled && window.nyamnyamSound) {
-        window.nyamnyamSound.play();
-    }
+    // Звук "ням-ням" больше не используется
     
     // Увеличиваем счет больше, чем за обычный хороший предмет
     window.score += 25;
