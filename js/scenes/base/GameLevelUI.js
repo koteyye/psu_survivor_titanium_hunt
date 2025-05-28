@@ -176,22 +176,26 @@ export function createGameUI(scene, options = {}) {
     scene.menuButton = menuButton;
     scene.uiElements.push(menuButton);
     
-    // Создание текста с подсказками по управлению
-    const controlsText = scene.add.text(
-        960, 
-        80, 
-        'Управление: ← → - движение, P - пауза, R - перезапуск, M - меню', 
+    // Создание текста с подсказками по управлению в киберпанк-стиле
+    const controlsText = new CyberTitle(
+        scene,
+        960,
+        1020, // Размещаем внизу экрана
+        'Управление: ← → - движение, P - пауза, R - перезапуск, M - меню',
         {
-            fontSize: '24px',
-            fill: '#ffffff',
-            backgroundColor: '#000000',
-            padding: { x: 15, y: 8 }
+            fontSize: 24,
+            fontFamily: 'Orbitron, sans-serif',
+            color: '#00f7ff',
+            glowIntensity: 1,
+            backgroundColor: '#0a0f1c80', // Полупрозрачный фон
+            padding: { x: 20, y: 10 }
         }
-    ).setOrigin(0.5);
+    );
+    scene.uiElements.push(controlsText);
     
     // Скрываем подсказку через 5 секунд
     scene.time.delayedCall(5000, () => {
-        controlsText.destroy();
+        controlsText.setVisible(false);
     });
     
     return {

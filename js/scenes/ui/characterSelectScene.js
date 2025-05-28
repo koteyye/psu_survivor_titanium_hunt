@@ -25,18 +25,23 @@ export class CharacterSelectScene extends Phaser.Scene {
     }
 
     create() {
-        // Добавляем фоновое изображение
-        this.add.image(960, 540, 'menuBackground').setDisplaySize(1920, 1080);
+        // Создаем темно-синий фон в киберпанк-стиле
+        this.add.rectangle(960, 540, 1920, 1080, 0x0a0f1c).setAlpha(0.9);
+        
+        // Добавляем фоновое изображение с пониженной прозрачностью
+        this.add.image(960, 540, 'menuBackground').setDisplaySize(1920, 1080).setAlpha(0.3);
         
         // Добавляем заголовок с использованием CyberTitle
         const title = new CyberTitle(
-            this, 
-            960, 
-            150, 
-            'Выбор персонажа', 
-            { 
+            this,
+            960,
+            150,
+            'Выбор персонажа',
+            {
                 fontSize: 64,
-                glowIntensity: 1.5,
+                fontFamily: 'Orbitron, sans-serif',
+                color: '#00f7ff',
+                glowIntensity: 1.8,
                 pulseAnimation: true
             }
         );
@@ -92,19 +97,31 @@ export class CharacterSelectScene extends Phaser.Scene {
                     
                     // Обновляем описание
                     this.updateCharacterDescription(character);
+                    
+                    // Воспроизводим звук выбора, если он есть
+                    if (character.id && this.sound.get(`select_${character.id}`)) {
+                        this.sound.play(`select_${character.id}`);
+                    }
                 },
                 {
-                    width: 250,  // Уменьшаем ширину карточки
-                    height: 320, // Уменьшаем высоту карточки
-                    id: character.id
+                    width: 250,  // Ширина карточки
+                    height: 320, // Высота карточки
+                    id: character.id,
+                    borderColor: '#333',
+                    selectedBorderColor: '#00f7ff',
+                    glowColor: '#00f7ff',
+                    glowAlpha: 0.5,
+                    borderWidth: 3,
+                    hoverEffect: true
                 }
             );
             
             // Добавляем имя персонажа под карточкой
             const nameText = this.add.text(x, y + 180, character.name, {
+                fontFamily: 'Orbitron, sans-serif',
                 fontSize: '24px',
                 fontStyle: 'bold',
-                fill: '#00ffff', // Делаем шрифт более ярким (голубой цвет)
+                fill: '#00f7ff', // Голубой цвет в стиле киберпанк
                 stroke: '#000000',
                 strokeThickness: 3
             }).setOrigin(0.5);
@@ -116,16 +133,16 @@ export class CharacterSelectScene extends Phaser.Scene {
         // Создаем контейнер для описания персонажа (перемещаем ниже, чтобы не перекрывать имена)
         this.descriptionContainer = this.add.container(960, 750);
         
-        // Фон для описания в стиле кнопок
+        // Фон для описания в киберпанк-стиле
         this.descriptionBackground = this.add.rectangle(
             0,
             0,
             1200,  // Ширина
             200,   // Высота
-            0x0a1a2a,  // Темно-синий фон как у кнопок
+            0x0a0f1c,  // Темно-синий фон в стиле киберпанк
             0.9
         );
-        this.descriptionBackground.setStrokeStyle(3, 0x4a6fa5);  // Более толстая обводка как у кнопок
+        this.descriptionBackground.setStrokeStyle(2, 0x00f7ff);  // Голубая обводка
         this.descriptionContainer.add(this.descriptionBackground);
         
         // Добавляем эффект свечения для блока описания
@@ -134,8 +151,8 @@ export class CharacterSelectScene extends Phaser.Scene {
             0,
             1220,  // Немного больше чем фон
             220,   // Немного больше чем фон
-            0x4a6fa5,
-            0.3
+            0x00f7ff,
+            0.2
         );
         this.descriptionGlow.setBlendMode(Phaser.BlendModes.ADD);
         this.descriptionContainer.add(this.descriptionGlow);
@@ -156,10 +173,12 @@ export class CharacterSelectScene extends Phaser.Scene {
             -90,  // Смещаем вверх, чтобы текст начинался сверху
             'Выберите персонажа, чтобы увидеть его описание',
             {
+                fontFamily: 'Orbitron, sans-serif',
                 fontSize: '22px',
-                fill: '#4a6fa5',         // Тот же цвет, что и у кнопок
+                fill: '#00f7ff',         // Голубой цвет в стиле киберпанк
                 wordWrap: { width: 1160 },
-                align: 'left'            // Выравнивание по левому краю
+                align: 'left',           // Выравнивание по левому краю
+                lineSpacing: 5           // Увеличиваем межстрочный интервал
             }
         );
         this.descriptionContainer.add(this.descriptionText);
@@ -237,12 +256,7 @@ export class CharacterSelectScene extends Phaser.Scene {
                     // Сохраняем выбранного персонажа в localStorage или другом хранилище
                     localStorage.setItem('selectedCharacter', this.selectedCharacter.id);
                     
-                    // Останавливаем музыку меню перед переходом в игру (если нужно)
-                    if (window.menuMusic && window.menuMusic.isPlaying) {
-                        window.menuMusic.stop();
-                    }
-                    
-                    // Переходим на сцену выбора уровня
+                    // Переходим на сцену выбора уровня без остановки музыки
                     this.scene.start('LevelSelectScene');
                 } else {
                     // Если персонаж не выбран, показываем предупреждение

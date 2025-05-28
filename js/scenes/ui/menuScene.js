@@ -60,7 +60,7 @@ export class MenuScene extends Phaser.Scene {
         const startButton = new CyberButton(
             this,
             960,
-            400,
+            380, // Уменьшаем Y-координату для первой кнопки
             'Начать игру',
             () => {
                 // Переходим на сцену выбора персонажа БЕЗ остановки музыки
@@ -78,7 +78,7 @@ export class MenuScene extends Phaser.Scene {
         const settingsButton = new CyberButton(
             this,
             960,
-            500,
+            520, // Увеличиваем Y-координату для второй кнопки
             'Настройки',
             () => {
                 // Переходим на сцену настроек БЕЗ остановки музыки
@@ -97,7 +97,7 @@ export class MenuScene extends Phaser.Scene {
         const aboutButton = new CyberButton(
             this,
             960,
-            600,
+            660, // Увеличиваем Y-координату для третьей кнопки
             'Об игре',
             () => {
                 // Переходим на сцену "Об игре" БЕЗ остановки музыки

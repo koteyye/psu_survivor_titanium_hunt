@@ -36,17 +36,36 @@ export class CyberButton extends CyberUIElement {
      * @param {string} text - Текст кнопки
      */
     createButton(text) {
-        // Создаем фон кнопки
+        // Создаем фон кнопки (интерактивный прямоугольник)
         this.background = this.scene.add.rectangle(
-            this.x, 
-            this.y, 
-            this.width, 
-            this.height, 
-            this.colors.bgGlow, 
+            this.x,
+            this.y,
+            this.width,
+            this.height,
+            this.colors.bgGlow,
             this.colors.bgGlowAlpha
         );
-        this.background.setStrokeStyle(3, this.colors.accent); // Увеличиваем толщину обводки для эффекта скругления
+        this.background.setStrokeStyle(2, this.colors.accent);
         this.background.setInteractive({ useHandCursor: true });
+        
+        // Создаем визуальный эффект закругленных углов
+        this.buttonVisual = this.scene.add.graphics();
+        this.buttonVisual.fillStyle(this.colors.bgGlow, this.colors.bgGlowAlpha);
+        this.buttonVisual.lineStyle(2, this.colors.accent, 1);
+        this.buttonVisual.fillRoundedRect(
+            this.x - this.width / 2,
+            this.y - this.height / 2,
+            this.width,
+            this.height,
+            5 // Радиус скругления как в примере
+        );
+        this.buttonVisual.strokeRoundedRect(
+            this.x - this.width / 2,
+            this.y - this.height / 2,
+            this.width,
+            this.height,
+            5 // Радиус скругления как в примере
+        );
         
         // Создаем текст кнопки
         this.textObject = this.scene.add.text(
@@ -62,23 +81,71 @@ export class CyberButton extends CyberUIElement {
         );
         this.textObject.setOrigin(0.5);
         
-        // Создаем эффект свечения (увеличиваем размер)
-        this.glow = this.scene.add.rectangle(
-            this.x, 
-            this.y, 
-            this.width + 20, // Увеличиваем размер свечения
-            this.height + 20, // Увеличиваем размер свечения
-            this.colors.accent, 
-            0.3 // Уменьшаем начальную яркость
+        // Создаем несколько слоев свечения для имитации размытия
+        
+        // Самый внешний слой (очень прозрачный)
+        this.outerGlow = this.scene.add.graphics();
+        this.outerGlow.fillStyle(this.colors.accent, 0.05); // Уменьшаем прозрачность
+        this.outerGlow.fillRoundedRect(
+            this.x - (this.width + 80) / 2, // Увеличиваем размер для большего расстояния между кнопками
+            this.y - (this.height + 80) / 2,
+            this.width + 80,
+            this.height + 80,
+            25 // Больший радиус для внешнего слоя
+        );
+        this.outerGlow.setBlendMode(Phaser.BlendModes.ADD);
+        
+        // Средний слой
+        this.middleGlow = this.scene.add.graphics();
+        this.middleGlow.fillStyle(this.colors.accent, 0.08); // Уменьшаем прозрачность
+        this.middleGlow.fillRoundedRect(
+            this.x - (this.width + 60) / 2, // Увеличиваем размер
+            this.y - (this.height + 60) / 2,
+            this.width + 60,
+            this.height + 60,
+            20 // Средний радиус
+        );
+        this.middleGlow.setBlendMode(Phaser.BlendModes.ADD);
+        
+        // Основной слой свечения
+        this.glow = this.scene.add.graphics();
+        this.glow.fillStyle(this.colors.accent, 0.15); // Уменьшаем прозрачность
+        this.glow.fillRoundedRect(
+            this.x - (this.width + 40) / 2, // Увеличиваем размер
+            this.y - (this.height + 40) / 2,
+            this.width + 40,
+            this.height + 40,
+            15 // Радиус для основного слоя
         );
         this.glow.setBlendMode(Phaser.BlendModes.ADD);
         
-        // Добавляем эффект пульсации с меньшей интенсивностью
+        // Внутреннее свечение
+        this.innerGlow = this.scene.add.graphics();
+        this.innerGlow.fillStyle(this.colors.accent, 0.1); // Уменьшаем прозрачность
+        this.innerGlow.fillRoundedRect(
+            this.x - (this.width - 10) / 2,
+            this.y - (this.height - 10) / 2,
+            this.width - 10,
+            this.height - 10,
+            3 // Меньший радиус для внутреннего свечения
+        );
+        this.innerGlow.setBlendMode(Phaser.BlendModes.ADD);
+        
+        // Добавляем эффект пульсации для всех слоев свечения
         if (this.pulseAnimation) {
             this.scene.tweens.add({
-                targets: this.glow,
-                alpha: { from: 0.2, to: 0.4 }, // Уменьшаем диапазон пульсации
-                duration: 1500, // Увеличиваем длительность для более плавной пульсации
+                targets: [this.outerGlow, this.middleGlow, this.glow],
+                alpha: { from: 0.3, to: 0.5 }, // Уменьшаем яркость пульсации
+                duration: 1200, // Немного быстрее для более заметного эффекта
+                yoyo: true,
+                repeat: -1,
+                ease: 'Sine.easeInOut'
+            });
+            
+            this.scene.tweens.add({
+                targets: this.innerGlow,
+                alpha: { from: 0.1, to: 0.2 }, // Уменьшаем яркость пульсации
+                duration: 1200,
                 yoyo: true,
                 repeat: -1,
                 ease: 'Sine.easeInOut'
@@ -89,7 +156,7 @@ export class CyberButton extends CyberUIElement {
         this.setupEventHandlers();
         
         // Добавляем элементы в массив
-        this.elements.push(this.background, this.textObject, this.glow);
+        this.elements.push(this.background, this.buttonVisual, this.textObject, this.outerGlow, this.middleGlow, this.glow, this.innerGlow);
     }
     
     /**
@@ -101,12 +168,34 @@ export class CyberButton extends CyberUIElement {
             this.background.on('pointerover', () => {
                 if (!this.disabled) {
                     this.background.fillColor = this.colors.accent;
-                    this.background.fillAlpha = 0.2;
-                    this.textObject.setStyle({ color: '#ffffff' });
+                    this.background.fillAlpha = 0.3; // Увеличиваем прозрачность фона при наведении
                     
-                    // Усиливаем свечение при наведении (но не слишком сильно)
-                    this.glow.setAlpha(0.5);
-                    this.glow.setScale(1.1);
+                    // Обновляем визуальный эффект
+                    this.buttonVisual.clear();
+                    this.buttonVisual.fillStyle(this.colors.accent, 0.3);
+                    this.buttonVisual.lineStyle(2, this.colors.accent, 1);
+                    this.buttonVisual.fillRoundedRect(
+                        this.x - this.width / 2,
+                        this.y - this.height / 2,
+                        this.width,
+                        this.height,
+                        5
+                    );
+                    this.buttonVisual.strokeRoundedRect(
+                        this.x - this.width / 2,
+                        this.y - this.height / 2,
+                        this.width,
+                        this.height,
+                        5
+                    );
+                    
+                    this.textObject.setStyle({ color: '#0a0f1c' }); // Темный текст на светлом фоне как в примере
+                    
+                    // Усиливаем свечение при наведении для неонового эффекта, но не слишком ярко
+                    this.outerGlow.setAlpha(0.15);
+                    this.middleGlow.setAlpha(0.2);
+                    this.glow.setAlpha(0.3);
+                    this.innerGlow.setAlpha(0.2);
                 }
             });
             
@@ -115,13 +204,35 @@ export class CyberButton extends CyberUIElement {
                 if (!this.disabled) {
                     this.background.fillColor = this.colors.bgGlow;
                     this.background.fillAlpha = this.colors.bgGlowAlpha;
-                    this.textObject.setStyle({ 
+                    
+                    // Обновляем визуальный эффект
+                    this.buttonVisual.clear();
+                    this.buttonVisual.fillStyle(this.colors.bgGlow, this.colors.bgGlowAlpha);
+                    this.buttonVisual.lineStyle(2, this.colors.accent, 1);
+                    this.buttonVisual.fillRoundedRect(
+                        this.x - this.width / 2,
+                        this.y - this.height / 2,
+                        this.width,
+                        this.height,
+                        5
+                    );
+                    this.buttonVisual.strokeRoundedRect(
+                        this.x - this.width / 2,
+                        this.y - this.height / 2,
+                        this.width,
+                        this.height,
+                        5
+                    );
+                    
+                    this.textObject.setStyle({
                         color: `#${this.colors.accent.toString(16).padStart(6, '0')}`
                     });
                     
                     // Возвращаем обычное свечение
-                    this.glow.setAlpha(0.3);
-                    this.glow.setScale(1.0);
+                    this.outerGlow.setAlpha(0.05);
+                    this.middleGlow.setAlpha(0.08);
+                    this.glow.setAlpha(0.15);
+                    this.innerGlow.setAlpha(0.1);
                 }
             });
             
@@ -129,11 +240,35 @@ export class CyberButton extends CyberUIElement {
             this.background.on('pointerdown', () => {
                 if (!this.disabled) {
                     this.background.fillColor = this.colors.accent;
-                    this.background.fillAlpha = 0.4;
-                    this.textObject.setStyle({ color: '#cccccc' });
+                    this.background.fillAlpha = 0.5; // Увеличиваем прозрачность фона при нажатии
+                    
+                    // Обновляем визуальный эффект с эффектом нажатия
+                    this.buttonVisual.clear();
+                    this.buttonVisual.fillStyle(this.colors.accent, 0.5);
+                    this.buttonVisual.lineStyle(2, this.colors.accent, 1);
+                    this.buttonVisual.fillRoundedRect(
+                        this.x - this.width / 2,
+                        this.y - this.height / 2 + 2, // Эффект нажатия
+                        this.width,
+                        this.height,
+                        5
+                    );
+                    this.buttonVisual.strokeRoundedRect(
+                        this.x - this.width / 2,
+                        this.y - this.height / 2 + 2, // Эффект нажатия
+                        this.width,
+                        this.height,
+                        5
+                    );
+                    
+                    this.textObject.setStyle({ color: '#0a0f1c' }); // Темный текст на светлом фоне
                     this.background.y += 2; // Небольшой эффект нажатия
+                    this.buttonVisual.y += 2;
                     this.textObject.y += 2;
+                    this.outerGlow.y += 2;
+                    this.middleGlow.y += 2;
                     this.glow.y += 2;
+                    this.innerGlow.y += 2;
                 }
             });
             
@@ -141,11 +276,35 @@ export class CyberButton extends CyberUIElement {
             this.background.on('pointerup', () => {
                 if (!this.disabled) {
                     this.background.fillColor = this.colors.accent;
-                    this.background.fillAlpha = 0.2;
-                    this.textObject.setStyle({ color: '#ffffff' });
+                    this.background.fillAlpha = 0.3;
+                    
+                    // Обновляем визуальный эффект
+                    this.buttonVisual.clear();
+                    this.buttonVisual.fillStyle(this.colors.accent, 0.3);
+                    this.buttonVisual.lineStyle(2, this.colors.accent, 1);
+                    this.buttonVisual.fillRoundedRect(
+                        this.x - this.width / 2,
+                        this.y - this.height / 2,
+                        this.width,
+                        this.height,
+                        5
+                    );
+                    this.buttonVisual.strokeRoundedRect(
+                        this.x - this.width / 2,
+                        this.y - this.height / 2,
+                        this.width,
+                        this.height,
+                        5
+                    );
+                    
+                    this.textObject.setStyle({ color: '#0a0f1c' }); // Темный текст на светлом фоне
                     this.background.y -= 2; // Возвращаем на место
+                    this.buttonVisual.y -= 2;
                     this.textObject.y -= 2;
+                    this.outerGlow.y -= 2;
+                    this.middleGlow.y -= 2;
                     this.glow.y -= 2;
+                    this.innerGlow.y -= 2;
                     
                     // Вызываем callback
                     if (this.callback) {
@@ -183,6 +342,9 @@ export class CyberButton extends CyberUIElement {
             if (this.glow) {
                 this.glow.setVisible(false);
             }
+            if (this.innerGlow) {
+                this.innerGlow.setVisible(false);
+            }
             
             // Отключаем интерактивность
             this.background.disableInteractive();
@@ -198,6 +360,9 @@ export class CyberButton extends CyberUIElement {
             // Включаем свечение
             if (this.glow) {
                 this.glow.setVisible(true);
+            }
+            if (this.innerGlow) {
+                this.innerGlow.setVisible(true);
             }
             
             // Включаем интерактивность

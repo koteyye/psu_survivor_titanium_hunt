@@ -16,12 +16,12 @@ export class CyberUIElement {
         this.isVisible = true;
         this.isActive = true;
         
-        // Цвета из CSS переменных
+        // Цвета из CSS переменных (обновлены для неонового стиля)
         this.colors = {
-            accent: 0x00c8ff,
+            accent: 0x00f7ff, // Более яркий неоновый цвет
             accentDark: 0x003344,
             textLight: 0xc0c0c0,
-            bgGlow: 0x00c8ff,
+            bgGlow: 0x00f7ff, // Более яркий неоновый цвет
             bgGlowAlpha: 0.1
         };
     }

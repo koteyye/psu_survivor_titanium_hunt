@@ -4,6 +4,7 @@ import { showLevelInfo } from '../../utils/levelUtils.js';
 import { createExplosionAnimation } from '../../utils/animationUtils.js';
 import { createGameUI, showLevelCompletedUI, updateGameUI } from './GameLevelUI.js';
 import { CharacterFactory } from '../../objects/characters/index.js';
+import { CyberTitle } from '../../ui/index.js';
 
 // Основная функция создания игровых объектов
 export function createLevelObjects(scene) {
@@ -159,14 +160,28 @@ function createUIElements(scene) {
     scene.levelCompletedText = completedUI.levelCompletedTitle;
     scene.nextLevelText = completedUI.nextLevelButton;
     
-    // Добавляем специфические элементы для уровня
+    // Добавляем специфические элементы для уровня в киберпанк-стиле
     if (scene.levelParams && scene.levelParams.levelDescription) {
-        scene.add.text(960, 150, scene.levelParams.levelDescription, {
-            fontSize: '24px',
-            fill: '#ff9900',
-            backgroundColor: '#000000',
-            padding: { x: 15, y: 8 }
-        }).setOrigin(0.5);
+        const levelDescText = new CyberTitle(
+            scene,
+            960,
+            200, // Размещаем ниже названия уровня и цели
+            scene.levelParams.levelDescription,
+            {
+                fontSize: 24,
+                fontFamily: 'Orbitron, sans-serif',
+                color: '#ff9900',
+                glowIntensity: 1,
+                backgroundColor: '#0a0f1c80', // Полупрозрачный фон
+                padding: { x: 20, y: 10 }
+            }
+        );
+        scene.uiElements.push(levelDescText);
+        
+        // Скрываем текст через 5 секунд
+        scene.time.delayedCall(5000, () => {
+            levelDescText.setVisible(false);
+        });
     }
     
     // Добавляем обновление UI в цикл обновления сцены

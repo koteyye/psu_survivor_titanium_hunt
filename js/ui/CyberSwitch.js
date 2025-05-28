@@ -91,47 +91,115 @@ export class CyberSwitch extends CyberUIElement {
             });
         }
         
-        // Создаем переключатель с более толстой обводкой для эффекта скругления
+        // Создаем интерактивный трек (прямоугольник) - невидимый, только для интерактивности
         this.track = this.scene.add.rectangle(
-            this.width / 2 - 50, 
-            0, 
-            50, 
-            28, 
-            this.colors.bgGlow, 
-            0.1
+            this.width / 2 - 50,
+            0,
+            50,
+            28,
+            this.colors.bgGlow,
+            0 // Делаем полностью прозрачным
         );
-        this.track.setStrokeStyle(3, this.colors.accent); // Увеличиваем толщину обводки
+        this.track.setInteractive({ useHandCursor: true });
         this.container.add(this.track);
         
-        // Создаем индикатор (кружок)
+        // Создаем визуальный эффект закругленных углов для трека
+        this.trackVisual = this.scene.add.graphics();
+        this.trackVisual.fillStyle(this.colors.bgGlow, 0.05);
+        this.trackVisual.lineStyle(2, this.colors.accent, 1);
+        this.trackVisual.fillRoundedRect(
+            this.width / 2 - 50 - 25, // центр - половина ширины
+            -14, // половина высоты
+            50,
+            28,
+            14 // Радиус скругления (половина высоты для эффекта капсулы)
+        );
+        this.trackVisual.strokeRoundedRect(
+            this.width / 2 - 50 - 25, // центр - половина ширины
+            -14, // половина высоты
+            50,
+            28,
+            14 // Радиус скругления (половина высоты для эффекта капсулы)
+        );
+        this.container.add(this.trackVisual);
+        
+        // Создаем внешнее свечение для трека
+        this.trackGlow = this.scene.add.graphics();
+        this.trackGlow.fillStyle(this.colors.accent, 0.05);
+        this.trackGlow.fillRoundedRect(
+            this.width / 2 - 50 - 25 - 5, // немного шире
+            -14 - 5, // немного выше
+            50 + 10,
+            28 + 10,
+            19 // Больший радиус для свечения
+        );
+        this.trackGlow.setBlendMode(Phaser.BlendModes.ADD);
+        this.container.add(this.trackGlow);
+        
+        // Создаем индикатор (кружок) - интерактивный
         this.indicator = this.scene.add.circle(
-            this.width / 2 - 50 + (this.state ? 22 : -22), 
-            0, 
-            12, 
+            this.width / 2 - 50 + (this.state ? 15 : -15), // Корректируем позицию, чтобы индикатор был внутри трека
+            0,
+            10, // Немного меньше размер
             this.colors.accent
         );
+        this.indicator.setInteractive({ useHandCursor: true });
         this.container.add(this.indicator);
         
-        // Создаем эффект свечения для индикатора (увеличиваем размер)
+        // Создаем многослойное свечение для индикатора
+        // Внешний слой (самый прозрачный)
+        this.indicatorOuterGlow = this.scene.add.circle(
+            this.width / 2 - 50 + (this.state ? 15 : -15), // Корректируем позицию
+            0,
+            18, // Немного уменьшаем размер свечения
+            this.colors.accent,
+            0.05
+        );
+        this.indicatorOuterGlow.setBlendMode(Phaser.BlendModes.ADD);
+        this.container.add(this.indicatorOuterGlow);
+        
+        // Средний слой
+        this.indicatorMiddleGlow = this.scene.add.circle(
+            this.width / 2 - 50 + (this.state ? 15 : -15), // Корректируем позицию
+            0,
+            14,
+            this.colors.accent,
+            0.1
+        );
+        this.indicatorMiddleGlow.setBlendMode(Phaser.BlendModes.ADD);
+        this.container.add(this.indicatorMiddleGlow);
+        
+        // Внутренний слой (основное свечение)
         this.indicatorGlow = this.scene.add.circle(
-            this.width / 2 - 50 + (this.state ? 22 : -22), 
-            0, 
-            18, // Увеличиваем размер свечения
-            this.colors.accent, 
-            0.3 // Уменьшаем начальную яркость
+            this.width / 2 - 50 + (this.state ? 15 : -15), // Корректируем позицию
+            0,
+            12,
+            this.colors.accent,
+            0.15
         );
         this.indicatorGlow.setBlendMode(Phaser.BlendModes.ADD);
         this.container.add(this.indicatorGlow);
         
-        // Делаем переключатель интерактивным
-        this.track.setInteractive({ useHandCursor: true });
-        this.indicator.setInteractive({ useHandCursor: true });
+        // Добавляем пульсацию для свечения
+        this.scene.tweens.add({
+            targets: [this.indicatorOuterGlow, this.indicatorMiddleGlow, this.indicatorGlow],
+            alpha: { from: 0.3, to: 0.5 },
+            duration: 1200,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut'
+        });
         
         // Добавляем обработчики событий
         this.setupEventHandlers();
         
         // Добавляем элементы в массив
         this.elements.push(this.container);
+        
+        // Если свитчер включен, меняем цвет трека
+        if (this.state) {
+            this.updateTrackColor(true);
+        }
     }
     
     /**
@@ -150,32 +218,36 @@ export class CyberSwitch extends CyberUIElement {
         
         // Наведение курсора
         this.track.on('pointerover', () => {
-            this.track.fillAlpha = 0.2;
-            // Усиливаем свечение при наведении (но не слишком сильно)
-            this.indicatorGlow.setAlpha(0.5);
-            this.indicatorGlow.setScale(1.2);
+            // Усиливаем свечение при наведении
+            this.updateTrackColor(this.state, true);
+            this.indicatorOuterGlow.setAlpha(0.1);
+            this.indicatorMiddleGlow.setAlpha(0.15);
+            this.indicatorGlow.setAlpha(0.25);
         });
         
         this.indicator.on('pointerover', () => {
-            this.track.fillAlpha = 0.2;
-            // Усиливаем свечение при наведении (но не слишком сильно)
-            this.indicatorGlow.setAlpha(0.5);
-            this.indicatorGlow.setScale(1.2);
+            // Усиливаем свечение при наведении
+            this.updateTrackColor(this.state, true);
+            this.indicatorOuterGlow.setAlpha(0.1);
+            this.indicatorMiddleGlow.setAlpha(0.15);
+            this.indicatorGlow.setAlpha(0.25);
         });
         
         // Уход курсора
         this.track.on('pointerout', () => {
-            this.track.fillAlpha = 0.1;
             // Возвращаем обычное свечение
-            this.indicatorGlow.setAlpha(0.3);
-            this.indicatorGlow.setScale(1.0);
+            this.updateTrackColor(this.state, false);
+            this.indicatorOuterGlow.setAlpha(0.05);
+            this.indicatorMiddleGlow.setAlpha(0.1);
+            this.indicatorGlow.setAlpha(0.15);
         });
         
         this.indicator.on('pointerout', () => {
-            this.track.fillAlpha = 0.1;
             // Возвращаем обычное свечение
-            this.indicatorGlow.setAlpha(0.3);
-            this.indicatorGlow.setScale(1.0);
+            this.updateTrackColor(this.state, false);
+            this.indicatorOuterGlow.setAlpha(0.05);
+            this.indicatorMiddleGlow.setAlpha(0.1);
+            this.indicatorGlow.setAlpha(0.15);
         });
         
         // Клик
@@ -187,23 +259,63 @@ export class CyberSwitch extends CyberUIElement {
      * Устанавливает состояние переключателя
      * @param {boolean} state - Новое состояние
      */
+    /**
+     * Обновляет цвет трека в зависимости от состояния
+     * @param {boolean} state - Состояние переключателя
+     * @param {boolean} isHover - Находится ли курсор над переключателем
+     */
+    updateTrackColor(state, isHover = false) {
+        // Трек остается невидимым, обновляем только визуальный эффект
+        
+        // Обновляем визуальный эффект трека
+        this.trackVisual.clear();
+        if (state) {
+            this.trackVisual.fillStyle(this.colors.accent, isHover ? 0.15 : 0.1);
+        } else {
+            this.trackVisual.fillStyle(this.colors.bgGlow, isHover ? 0.1 : 0.05);
+        }
+        
+        this.trackVisual.lineStyle(2, this.colors.accent, 1);
+        this.trackVisual.fillRoundedRect(
+            this.width / 2 - 50 - 25,
+            -14,
+            50,
+            28,
+            14
+        );
+        this.trackVisual.strokeRoundedRect(
+            this.width / 2 - 50 - 25,
+            -14,
+            50,
+            28,
+            14
+        );
+        
+        // Обновляем свечение трека
+        this.trackGlow.clear();
+        this.trackGlow.fillStyle(this.colors.accent, state ? (isHover ? 0.1 : 0.05) : 0.02);
+        this.trackGlow.fillRoundedRect(
+            this.width / 2 - 50 - 25 - 5,
+            -14 - 5,
+            50 + 10,
+            28 + 10,
+            19
+        );
+    }
+    
     setState(state) {
         this.state = state;
         
-        // Анимируем перемещение индикатора
+        // Анимируем перемещение индикатора и всех его свечений
         this.scene.tweens.add({
-            targets: [this.indicator, this.indicatorGlow],
-            x: this.width / 2 - 50 + (state ? 22 : -22),
+            targets: [this.indicator, this.indicatorOuterGlow, this.indicatorMiddleGlow, this.indicatorGlow],
+            x: this.width / 2 - 50 + (state ? 20 : -20), // Перемещаем индикатор в зависимости от состояния
             duration: 200,
             ease: 'Power2'
         });
         
-        // Меняем цвет трека
-        if (state) {
-            this.track.fillAlpha = 0.2;
-        } else {
-            this.track.fillAlpha = 0.1;
-        }
+        // Обновляем цвет трека
+        this.updateTrackColor(state);
         
         return this;
     }

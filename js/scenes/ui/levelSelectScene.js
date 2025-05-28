@@ -1,5 +1,6 @@
 // Сцена выбора уровня
 import { levelManager } from '../../utils/levelManager.js';
+import { CyberButton, CyberTitle } from '../../ui/index.js';
 
 export class LevelSelectScene extends Phaser.Scene {
     constructor() {
@@ -12,17 +13,37 @@ export class LevelSelectScene extends Phaser.Scene {
     }
 
     create() {
-        // Добавляем фоновое изображение
-        this.add.image(960, 540, 'menuBackground').setDisplaySize(1920, 1080);
+        // Создаем темно-синий фон в киберпанк-стиле
+        this.add.rectangle(960, 540, 1920, 1080, 0x0a0f1c).setAlpha(0.9);
         
-        // Добавляем заголовок
-        this.add.text(960, 200, 'Выбор уровня', {
-            fontSize: '64px',
-            fontStyle: 'bold',
-            fill: '#ffffff',
-            stroke: '#000000',
-            strokeThickness: 6
-        }).setOrigin(0.5);
+        // Добавляем фоновое изображение с пониженной прозрачностью
+        this.add.image(960, 540, 'menuBackground').setDisplaySize(1920, 1080).setAlpha(0.3);
+        
+        // Останавливаем музыку игры, если она играет
+        if (window.backgroundMusic && window.backgroundMusic.isPlaying) {
+            window.backgroundMusic.stop();
+        }
+        
+        // Музыка продолжает играть с предыдущего экрана
+        
+        // Добавляем заголовок с использованием CyberTitle
+        const title = new CyberTitle(
+            this,
+            960,
+            200,
+            'Выбор уровня',
+            {
+                fontSize: 64,
+                fontFamily: 'Orbitron, sans-serif',
+                color: '#00f7ff',
+                glowIntensity: 1.8,
+                pulseAnimation: true
+            }
+        );
+        
+        // Массив для хранения UI элементов
+        this.uiElements = [];
+        this.uiElements.push(title);
         
         // Получаем все уровни
         const levels = levelManager.getAllLevels();
@@ -31,126 +52,102 @@ export class LevelSelectScene extends Phaser.Scene {
         this.levelButtons = [];
         
         levels.forEach((level, index) => {
-            const y = 350 + index * 100;
+            const y = 350 + index * 120; // Увеличиваем расстояние между кнопками
             
-            // Создаем кнопку
-            const buttonColor = level.unlocked ? 0x4a6fa5 : 0x666666;
-            const button = this.add.rectangle(960, y, 600, 80, buttonColor, 0.8);
-            button.setStrokeStyle(2, 0xffffff);
-            
-            // Добавляем текст на кнопку
-            const buttonText = this.add.text(960, y, level.name, {
-                fontSize: '32px',
-                fill: level.unlocked ? '#ffffff' : '#aaaaaa'
-            }).setOrigin(0.5);
-            
-            let lockIcon = null;
-            
-            // Если уровень заблокирован, добавляем иконку замка
-            if (!level.unlocked) {
-                lockIcon = this.add.text(1180, y, '🔒', {
+            if (level.unlocked) {
+                // Создаем кнопку с использованием CyberButton для разблокированных уровней
+                const button = new CyberButton(
+                    this,
+                    960,
+                    y,
+                    level.name,
+                    () => {
+                        // Останавливаем музыку меню перед переходом в игру
+                        if (window.menuMusic && window.menuMusic.isPlaying) {
+                            window.menuMusic.stop();
+                        }
+                        
+                        // Получаем выбранного персонажа
+                        const selectedCharacter = localStorage.getItem('selectedCharacter') || 'friender_s';
+                        
+                        // Запускаем выбранный уровень с передачей информации о выбранном персонаже
+                        if (level.id === 1) {
+                            this.scene.start('MainScene', { levelId: level.id, character: selectedCharacter });
+                        } else if (level.id === 2) {
+                            this.scene.start('Level2Scene', { levelId: level.id, character: selectedCharacter });
+                        } else if (level.id === 3) {
+                            this.scene.start('Level3Scene', { levelId: level.id, character: selectedCharacter });
+                        }
+                    },
+                    {
+                        width: 600,
+                        height: 80,
+                        fontSize: 32,
+                        fontFamily: 'Orbitron, sans-serif',
+                        pulseAnimation: true
+                    }
+                );
+                
+                this.uiElements.push(button);
+                this.levelButtons.push({ button });
+            } else {
+                // Для заблокированных уровней создаем неактивную кнопку
+                const lockedButton = this.add.rectangle(960, y, 600, 80, 0x333333, 0.8);
+                lockedButton.setStrokeStyle(2, 0x666666);
+                
+                // Добавляем текст на кнопку
+                const buttonText = this.add.text(960, y, level.name, {
+                    fontFamily: 'Orbitron, sans-serif',
+                    fontSize: '32px',
+                    fill: '#666666'
+                }).setOrigin(0.5);
+                
+                // Добавляем иконку замка
+                const lockIcon = this.add.text(1180, y, '🔒', {
                     fontSize: '32px'
                 }).setOrigin(0.5);
                 
                 // Добавляем текст с условием разблокировки
-                this.add.text(960, y + 30, `Нужно набрать ${level.scoreToUnlock} очков на предыдущем уровне`, {
+                const unlockText = this.add.text(960, y + 30, `Нужно набрать ${level.scoreToUnlock} очков на предыдущем уровне`, {
+                    fontFamily: 'Orbitron, sans-serif',
                     fontSize: '18px',
-                    fill: '#aaaaaa'
+                    fill: '#666666'
                 }).setOrigin(0.5);
+                
+                this.levelButtons.push({ button: lockedButton, text: buttonText, lockIcon, unlockText });
             }
-            
-            // Если уровень разблокирован, делаем кнопку интерактивной
-            if (level.unlocked) {
-                button.setInteractive();
-                
-                // Добавляем эффекты при наведении и клике
-                button.on('pointerover', () => {
-                    button.fillColor = 0x5a8ac5;
-                    buttonText.setStyle({ fill: '#ffffff' });
-                });
-                
-                button.on('pointerout', () => {
-                    button.fillColor = 0x4a6fa5;
-                    buttonText.setStyle({ fill: '#ffffff' });
-                });
-                
-                button.on('pointerdown', () => {
-                    button.fillColor = 0x3a5f95;
-                    buttonText.setStyle({ fill: '#cccccc' });
-                });
-                
-                button.on('pointerup', () => {
-                    button.fillColor = 0x5a8ac5;
-                    buttonText.setStyle({ fill: '#ffffff' });
-                    
-                    // Останавливаем музыку меню перед переходом в игру
-                    if (window.menuMusic && window.menuMusic.isPlaying) {
-                        window.menuMusic.stop();
-                    }
-                    
-                    // Получаем выбранного персонажа
-                    const selectedCharacter = localStorage.getItem('selectedCharacter') || 'friender_s';
-                    
-                    // Запускаем выбранный уровень с передачей информации о выбранном персонаже
-                    // Используем явные ключи сцен вместо получения из level.scene
-                    if (level.id === 1) {
-                        this.scene.start('MainScene', { levelId: level.id, character: selectedCharacter });
-                    } else if (level.id === 2) {
-                        this.scene.start('Level2Scene', { levelId: level.id, character: selectedCharacter });
-                    } else if (level.id === 3) {
-                        // Запускаем третий уровень
-                        this.scene.start('Level3Scene', { levelId: level.id, character: selectedCharacter });
-                    }
-                });
-            }
-            
-            this.levelButtons.push({ button, text: buttonText, lockIcon });
         });
         
-        // Создаем кнопку "Назад"
-        this.createButton(960, 800, 'Назад', () => {
-            // Переходим обратно в меню БЕЗ остановки музыки
-            this.scene.start('MenuScene');
-        });
+        // Создаем кнопку "Назад" с использованием CyberButton
+        const backButton = new CyberButton(
+            this,
+            960,
+            800,
+            'Назад',
+            () => {
+                // Переходим обратно в меню БЕЗ остановки музыки
+                this.scene.start('MenuScene');
+            },
+            {
+                width: 400,
+                height: 80,
+                fontSize: 32,
+                fontFamily: 'Orbitron, sans-serif'
+            }
+        );
+        this.uiElements.push(backButton);
     }
     
-    // Вспомогательная функция для создания кнопок
-    createButton(x, y, text, callback) {
-        // Создаем прямоугольник для кнопки
-        const button = this.add.rectangle(x, y, 400, 80, 0x4a6fa5, 0.8);
-        button.setStrokeStyle(2, 0xffffff);
-        
-        // Добавляем текст на кнопку
-        const buttonText = this.add.text(x, y, text, {
-            fontSize: '32px',
-            fill: '#ffffff'
-        }).setOrigin(0.5);
-        
-        // Делаем кнопку интерактивной
-        button.setInteractive();
-        
-        // Добавляем эффекты при наведении и клике
-        button.on('pointerover', () => {
-            button.fillColor = 0x5a8ac5;
-            buttonText.setStyle({ fill: '#ffffff' });
-        });
-        
-        button.on('pointerout', () => {
-            button.fillColor = 0x4a6fa5;
-            buttonText.setStyle({ fill: '#ffffff' });
-        });
-        
-        button.on('pointerdown', () => {
-            button.fillColor = 0x3a5f95;
-            buttonText.setStyle({ fill: '#cccccc' });
-        });
-        
-        button.on('pointerup', () => {
-            button.fillColor = 0x5a8ac5;
-            buttonText.setStyle({ fill: '#ffffff' });
-            callback();
-        });
-        
-        return { button, text: buttonText };
+    // Очищаем ресурсы при уничтожении сцены
+    shutdown() {
+        // Уничтожаем все UI элементы
+        if (this.uiElements) {
+            this.uiElements.forEach(element => {
+                if (element && element.destroy) {
+                    element.destroy();
+                }
+            });
+            this.uiElements = [];
+        }
     }
 }

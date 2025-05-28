@@ -4,7 +4,7 @@
 
 ## 🎮 [ИГРАТЬ ОНЛАЙН ПРЯМО СЕЙЧАС!](https://koteyye.github.io/psu_survivor_titanium_hunt/) 🎮
 
-![Игровой процесс](assets/menu_background.png)
+<img src="assets/images/preview/preview_1.jpg" alt="Игровой процесс" width="500" height="500">
 
 ## 🚀 ЧТО ЭТО ЗА ИГРА?
 
