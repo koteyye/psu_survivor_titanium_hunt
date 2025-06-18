@@ -1,0 +1,42 @@
+{
+  "colors": {
+    "background": "0x000000",
+    "border": "0x00ff00",
+    "mainAxis": "0xffffff",
+    "lossZone": "0xff0000",
+    "x1Zone": "0x00aa00",
+    "x2Zone": "0x00dd00",
+    "x3Zone": "0x00ff00",
+    "startPoint": "0xffff00",
+    "controlPoint": "0x00ffff"
+  },
+  "zones": {
+    "lossMultiplier": 0,
+    "x1Multiplier": 1,
+    "x2Multiplier": 2,
+    "x3Multiplier": 3
+  },
+  "display": {
+    "levelSpacing": 25,
+    "maxPoints": 60,
+    "lineWidth": {
+      "lossZone": 2,
+      "x1Zone": 2,
+      "x2Zone": 2,
+      "x3Zone": 3
+    },
+    "lineAlpha": {
+      "lossZone": 0.8,
+      "x1Zone": 0.7,
+      "x2Zone": 0.9,
+      "x3Zone": 1.0
+    },
+    "controlPointSize": {
+      "lossZone": 8,
+      "x1Zone": 8,
+      "x2Zone": 9,
+      "x3Zone": 10
+    },
+    "updateInterval": 100
+  }
+}

@@ -1,0 +1,33 @@
+{
+    "passiveSkills": [
+        {
+            "id": "speed_demon",
+            "name": "Скоростной демон",
+            "description": "Передвигается на 20% быстрее обычного",
+            "config": {
+                "speedMultiplier": 1.2
+            }
+        },
+        {
+            "id": "dodge_master",
+            "name": "Мастер уклонения",
+            "description": "15% шанс полностью избежать урона от плохого блока",
+            "config": {
+                "dodgeChance": 0.15
+            }
+        }
+    ],
+    "activeSkills": [
+        {
+            "id": "rage_mode",
+            "name": "Режим ярости",
+            "description": "При накоплении 100 ярости активирует режим ярости, увеличивающий скорость на 50% и снижающий получаемый урон на 10 единиц",
+            "config": {
+                "duration": 5000,
+                "speedMultiplier": 1.5,
+                "damageReduction": 10,
+                "activationThreshold": 100
+            }
+        }
+    ]
+}

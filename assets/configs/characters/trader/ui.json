@@ -1,0 +1,145 @@
+{
+  "floatingText": {
+    "pool": {
+      "initialSize": 20,
+      "fontSize": "24px",
+      "strokeThickness": 3,
+      "strokeColor": "#000000"
+    },
+    "animations": {
+      "default": {
+        "duration": 1500,
+        "yOffset": -100,
+        "ease": "Power2",
+        "alpha": 0
+      },
+      "critical": {
+        "duration": 2000,
+        "yOffset": -150,
+        "ease": "Bounce",
+        "alpha": 0,
+        "scale": 1.5
+      },
+      "sale": {
+        "duration": 1800,
+        "yOffset": -120,
+        "ease": "Back.easeOut",
+        "alpha": 0,
+        "scale": 1.2
+      }
+    },
+    "colors": {
+      "default": "#ffffff",
+      "warning": "#ff0000",
+      "success": "#00ff00",
+      "info": "#00ffff"
+    },
+    "positions": {
+      "offsetY": -50,
+      "originX": 0.5,
+      "originY": 0.5
+    }
+  },
+  "effects": {
+    "pool": {
+      "initialSize": 10
+    },
+    "explosion": {
+      "money": {
+        "size": 400,
+        "origin": 0.5,
+        "animationKey": "money_explode"
+      },
+      "default": {
+        "size": 500,
+        "origin": 0.5,
+        "animationKey": "default_explode",
+        "tint": "0xff0000"
+      },
+      "sale": {
+        "size": 450,
+        "origin": 0.5,
+        "animationKey": "sale_explode",
+        "tint": "0x00ff00"
+      }
+    }
+  },
+  "moneyBar": {
+    "updateInterval": 100,
+    "position": {
+      "x": 300,
+      "y": 150,
+      "width": 400,
+      "height": 30
+    },
+    "colors": {
+      "normal": "0x00ff00",
+      "warning": "0xffff00",
+      "critical": "0xff0000"
+    },
+    "thresholds": {
+      "warning": 30,
+      "critical": 10
+    }
+  },
+  "defaultTimer": {
+    "duration": 5000,
+    "warningInterval": 1000,
+    "indicator": {
+      "x": 300,
+      "y": 190,
+      "width": 400,
+      "height": 10,
+      "backgroundColor": "0x333333",
+      "fillColor": "0xff0000",
+      "borderColor": "0xffffff",
+      "borderWidth": 2,
+      "alpha": 0.8
+    },
+    "messages": {
+      "start": "ВНИМАНИЕ! ДЕНЬГИ ЗАКОНЧИЛИСЬ! {time} СЕК ДО ДЕФОЛТА!",
+      "countdown": "{time} СЕК ДО ДЕФОЛТА!",
+      "triggered": "ДЕФОЛТ! -{damage} ЗДОРОВЬЯ"
+    }
+  },
+  "graph": {
+    "tooltips": {
+      "enabled": true,
+      "backgroundColor": "0x000000",
+      "textColor": "#ffffff",
+      "padding": 10,
+      "borderRadius": 5,
+      "borderColor": "0xffffff",
+      "borderWidth": 1,
+      "alpha": 0.8,
+      "fadeInDuration": 200,
+      "fadeOutDuration": 100
+    },
+    "tooltipTexts": {
+      "redZone": "Опасная зона! Высокий риск дефолта",
+      "yellowZone": "Зона предупреждения. Средний риск",
+      "greenZone": "Безопасная зона. Низкий риск",
+      "controlPoint": "Текущий множитель: x{value}",
+      "sellButton": "Продать акции за {value} монет"
+    },
+    "updateInterval": 100
+  },
+  "animations": {
+    "character": {
+      "default": {
+        "duration": 100,
+        "alpha": 0.5,
+        "repeat": 5,
+        "yoyo": true,
+        "tint": "0xff0000"
+      },
+      "sale": {
+        "duration": 100,
+        "alpha": 0.8,
+        "repeat": 3,
+        "yoyo": true,
+        "tint": "0x00ff00"
+      }
+    }
+  }
+}

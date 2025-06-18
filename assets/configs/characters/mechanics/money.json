@@ -1,0 +1,41 @@
+{
+    "trader": {
+        "moneyMultiplier": 1.5,
+        "bonusPoints": 5,
+        "defaultMoney": 100,
+        "moneyBar": {
+            "x": 300,
+            "y": 150,
+            "width": 400,
+            "height": 30,
+            "color": "0x00ff00",
+            "showValue": false
+        },
+        "comboMultiplier": {
+            "enabled": true,
+            "maxCombo": 5,
+            "multiplierPerCombo": 0.1,
+            "comboResetTime": 3000
+        },
+        "items": {
+            "good": {
+                "cost": 10,
+                "basketValue": 10,
+                "message": "+10 В КОРЗИНУ",
+                "messageColor": "#ffff00"
+            },
+            "veryGood": {
+                "cost": 20,
+                "basketValue": 20,
+                "message": "+20 В КОРЗИНУ",
+                "messageColor": "#ffff00"
+            },
+            "bad": {
+                "cost": 5,
+                "basketValue": 5,
+                "message": "+5 В КОРЗИНУ",
+                "messageColor": "#ffff00"
+            }
+        }
+    }
+}

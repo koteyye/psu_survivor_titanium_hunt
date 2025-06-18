@@ -1,13 +1,11 @@
 // Импортируем необходимые модули
 import { config } from './config.js';
-import { MainScene, Level2Scene, Level3Scene } from './scenes/levels/gameLevels.js';
+import { MainScene, Level2Scene, Level3Scene } from './scenes/levels/game_levels.js';
 import { MenuScene } from './scenes/ui/menuScene.js';
 import { SettingsScene } from './scenes/ui/settingsScene.js';
 import { AboutScene } from './scenes/ui/aboutScene.js';
 import { LevelSelectScene } from './scenes/ui/levelSelectScene.js';
 import { CharacterSelectScene } from './scenes/ui/characterSelectScene.js';
-import { levelManager } from './utils/levelManager.js';
-import { progressManager } from './utils/progressManager.js';
 
 // Глобальные переменные
 window.player = null;

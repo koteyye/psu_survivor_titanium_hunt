@@ -1,0 +1,23 @@
+{
+  "floatingText": {
+    "duration": 1500,
+    "yOffset": -100,
+    "ease": "Power2",
+    "alpha": 0
+  },
+  "graphUpdate": {
+    "interval": 100,
+    "easing": "Sine.easeInOut"
+  },
+  "basketGlow": {
+    "pulseRate": 800,
+    "minAlpha": 0.3,
+    "maxAlpha": 0.7
+  },
+  "controlPoint": {
+    "pulseEnabled": true,
+    "pulseRate": 600,
+    "minScale": 0.9,
+    "maxScale": 1.1
+  }
+}

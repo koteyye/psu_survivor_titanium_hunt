@@ -36,10 +36,11 @@ export function initializeLevel(scene, levelId = 1) {
 // Функция для проверки завершения уровня
 export function checkLevelCompletion(scene, levelId, levelConfig) {
     // Если игра окончена, не проверяем
-    if (window.gameOver) return false;
+    if (scene.registry.get('gameOver')) return false;
     
     // Проверяем, достигнут ли необходимый счет
-    if (window.score >= levelConfig.scoreToComplete) {
+    const score = scene.registry.get('score') || 0;
+    if (score >= levelConfig.scoreToComplete) {
         // Отмечаем уровень как пройденный
         levelManager.completeLevel(levelId);
         
@@ -66,17 +67,25 @@ export function checkLevelCompletion(scene, levelId, levelConfig) {
 }
 
 // Функция для проверки достижений
-export function checkAchievements(startTime, currentTime) {
+export function checkAchievements(startTime, currentTime, scene) {
+    // Проверяем, что сцена передана
+    if (!scene) {
+        console.error('Ошибка: сцена не передана в функцию checkAchievements');
+        return;
+    }
+    
     // Проверяем достижения за набранные очки
-    if (window.score >= 100) {
+    const score = scene.registry.get('score') || 0;
+    
+    if (score >= 100) {
         progressManager.addAchievement(ACHIEVEMENTS.REACH_100_POINTS);
     }
     
-    if (window.score >= 500) {
+    if (score >= 500) {
         progressManager.addAchievement(ACHIEVEMENTS.REACH_500_POINTS);
     }
     
-    if (window.score >= 1000) {
+    if (score >= 1000) {
         progressManager.addAchievement(ACHIEVEMENTS.REACH_1000_POINTS);
     }
     
@@ -170,13 +179,16 @@ export function spawnLevelItems(scene, levelConfig) {
     
     if (random < levelConfig.badItemChance) {
         // Плохой блок питания
-        item = window.badItems.create(x, 0, 'badItem');
+        const badItems = scene.registry.get('badItems');
+        item = badItems.create(x, 0, 'badItem');
     } else if (random < levelConfig.badItemChance + levelConfig.goodItemChance) {
         // Хороший блок питания
-        item = window.goodItems.create(x, 0, 'goodItem');
+        const goodItems = scene.registry.get('goodItems');
+        item = goodItems.create(x, 0, 'goodItem');
     } else {
         // Очень хороший блок питания
-        item = window.veryGoodItems.create(x, 0, 'veryGoodItem');
+        const veryGoodItems = scene.registry.get('veryGoodItems');
+        item = veryGoodItems.create(x, 0, 'veryGoodItem');
     }
     
     // Настраиваем предмет
@@ -246,26 +258,30 @@ export function createLevelCompletedUI(scene) {
 
 // Функция для обновления счетчиков собранных предметов и проверки достижений
 export function updateItemCollectionStats(itemType) {
-    // Статические счетчики для отслеживания собранных предметов
-    if (!window.itemStats) {
-        window.itemStats = {
+    // Получаем счетчики из Registry или создаем новые
+    let itemStats = scene.registry.get('itemStats');
+    if (!itemStats) {
+        itemStats = {
             goodItemsCollected: 0,
             veryGoodItemsCollected: 0
         };
+        scene.registry.set('itemStats', itemStats);
     }
     
     if (itemType === 'good') {
-        window.itemStats.goodItemsCollected++;
+        itemStats.goodItemsCollected++;
+        scene.registry.set('itemStats', itemStats);
         
         // Проверяем достижения
-        if (window.itemStats.goodItemsCollected >= 50) {
+        if (itemStats.goodItemsCollected >= 50) {
             progressManager.addAchievement(ACHIEVEMENTS.COLLECT_50_GOOD_ITEMS);
         }
     } else if (itemType === 'veryGood') {
-        window.itemStats.veryGoodItemsCollected++;
+        itemStats.veryGoodItemsCollected++;
+        scene.registry.set('itemStats', itemStats);
         
         // Проверяем достижения
-        if (window.itemStats.veryGoodItemsCollected >= 20) {
+        if (itemStats.veryGoodItemsCollected >= 20) {
             progressManager.addAchievement(ACHIEVEMENTS.COLLECT_20_VERY_GOOD_ITEMS);
         }
     }

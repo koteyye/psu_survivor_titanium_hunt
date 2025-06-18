@@ -1,0 +1,19 @@
+{
+  "zones": {
+    "lossMultiplier": 0,
+    "x1Multiplier": 1,
+    "x2Multiplier": 2,
+    "x3Multiplier": 3
+  },
+  "updateInterval": 100,
+  "graphBehavior": {
+    "directionChangeChance": 0.05,
+    "downwardTrendInPositiveZone": 0.3,
+    "downwardTrendInHighZone": 0.6,
+    "upwardTrendInNegativeZone": 0.2,
+    "randomMovementRange": {
+      "min": 2,
+      "max": 9
+    }
+  }
+}

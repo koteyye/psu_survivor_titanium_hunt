@@ -1,0 +1,28 @@
+{
+    "base": {
+        "maxHealth": 100,
+        "regeneration": 0,
+        "damageReduction": 0
+    },
+    "friender": {
+        "maxHealth": 100,
+        "regeneration": 0,
+        "damageReduction": 0,
+        "bonusHealthFromItems": 5
+    },
+    "trader": {
+        "maxHealth": 120,
+        "regeneration": 1,
+        "defaultDamage": 40,
+        "goodItemDamage": 15,
+        "veryGoodItemDamage": 10,
+        "badItemDamage": 20,
+        "sellLossDamage": 20
+    },
+    "zummer": {
+        "maxHealth": 90,
+        "regeneration": 0,
+        "damageReduction": 0,
+        "dodgeChance": 0.15
+    }
+}

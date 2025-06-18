@@ -1,0 +1,503 @@
+{
+	"textures": [
+		{
+			"image": "good_super.png",
+			"format": "RGBA8888",
+			"size": {
+				"w": 1450,
+				"h": 977
+			},
+			"scale": 1,
+			"frames": [
+				{
+					"filename": "aero_cerberus_explosion_5.png",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 300,
+						"h": 300
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 8,
+						"w": 300,
+						"h": 292
+					},
+					"frame": {
+						"x": 1,
+						"y": 1,
+						"w": 300,
+						"h": 292
+					}
+				},
+				{
+					"filename": "aero_cerberus_explosion_3.png",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 300,
+						"h": 300
+					},
+					"spriteSourceSize": {
+						"x": 10,
+						"y": 9,
+						"w": 290,
+						"h": 290
+					},
+					"frame": {
+						"x": 1,
+						"y": 295,
+						"w": 290,
+						"h": 290
+					}
+				},
+				{
+					"filename": "aero_cerberus_explosion_6.png",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 300,
+						"h": 300
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 300,
+						"h": 275
+					},
+					"frame": {
+						"x": 303,
+						"y": 1,
+						"w": 300,
+						"h": 275
+					}
+				},
+				{
+					"filename": "aero_cerberus_explosion_7.png",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 300,
+						"h": 300
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 14,
+						"w": 300,
+						"h": 271
+					},
+					"frame": {
+						"x": 605,
+						"y": 1,
+						"w": 300,
+						"h": 271
+					}
+				},
+				{
+					"filename": "aero_cerberus_explosion_4.png",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 300,
+						"h": 300
+					},
+					"spriteSourceSize": {
+						"x": 5,
+						"y": 23,
+						"w": 295,
+						"h": 272
+					},
+					"frame": {
+						"x": 907,
+						"y": 1,
+						"w": 295,
+						"h": 272
+					}
+				},
+				{
+					"filename": "aero_cerberus_explosion_8.png",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 300,
+						"h": 300
+					},
+					"spriteSourceSize": {
+						"x": 26,
+						"y": 67,
+						"w": 245,
+						"h": 216
+					},
+					"frame": {
+						"x": 1204,
+						"y": 1,
+						"w": 245,
+						"h": 216
+					}
+				},
+				{
+					"filename": "aero_cerberus_explosion_2.png",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 300,
+						"h": 300
+					},
+					"spriteSourceSize": {
+						"x": 12,
+						"y": 41,
+						"w": 288,
+						"h": 259
+					},
+					"frame": {
+						"x": 1,
+						"y": 587,
+						"w": 288,
+						"h": 259
+					}
+				},
+				{
+					"filename": "good_explosion_2.png",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 300,
+						"h": 300
+					},
+					"spriteSourceSize": {
+						"x": 5,
+						"y": 4,
+						"w": 290,
+						"h": 243
+					},
+					"frame": {
+						"x": 303,
+						"y": 278,
+						"w": 290,
+						"h": 243
+					}
+				},
+				{
+					"filename": "good_explosion_3.png",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 300,
+						"h": 300
+					},
+					"spriteSourceSize": {
+						"x": 26,
+						"y": 9,
+						"w": 273,
+						"h": 232
+					},
+					"frame": {
+						"x": 293,
+						"y": 523,
+						"w": 273,
+						"h": 232
+					}
+				},
+				{
+					"filename": "aero_cerberus_explosion_1.png",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 300,
+						"h": 300
+					},
+					"spriteSourceSize": {
+						"x": 47,
+						"y": 78,
+						"w": 205,
+						"h": 219
+					},
+					"frame": {
+						"x": 291,
+						"y": 757,
+						"w": 205,
+						"h": 219
+					}
+				},
+				{
+					"filename": "good_explosion_6.png",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 300,
+						"h": 300
+					},
+					"spriteSourceSize": {
+						"x": 37,
+						"y": 38,
+						"w": 235,
+						"h": 203
+					},
+					"frame": {
+						"x": 1204,
+						"y": 219,
+						"w": 235,
+						"h": 203
+					}
+				},
+				{
+					"filename": "super_explosion_5.png",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 300,
+						"h": 300
+					},
+					"spriteSourceSize": {
+						"x": 42,
+						"y": 51,
+						"w": 218,
+						"h": 215
+					},
+					"frame": {
+						"x": 498,
+						"y": 757,
+						"w": 218,
+						"h": 215
+					}
+				},
+				{
+					"filename": "good_explosion_4.png",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 300,
+						"h": 300
+					},
+					"spriteSourceSize": {
+						"x": 26,
+						"y": 9,
+						"w": 273,
+						"h": 268
+					},
+					"frame": {
+						"x": 605,
+						"y": 274,
+						"w": 273,
+						"h": 268
+					}
+				},
+				{
+					"filename": "good_explosion_5.png",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 300,
+						"h": 300
+					},
+					"spriteSourceSize": {
+						"x": 26,
+						"y": 37,
+						"w": 265,
+						"h": 204
+					},
+					"frame": {
+						"x": 880,
+						"y": 275,
+						"w": 265,
+						"h": 204
+					}
+				},
+				{
+					"filename": "good_explosion_1.png",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 300,
+						"h": 300
+					},
+					"spriteSourceSize": {
+						"x": 33,
+						"y": 48,
+						"w": 251,
+						"h": 203
+					},
+					"frame": {
+						"x": 568,
+						"y": 544,
+						"w": 251,
+						"h": 203
+					}
+				},
+				{
+					"filename": "super_explosion_2.png",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 300,
+						"h": 300
+					},
+					"spriteSourceSize": {
+						"x": 58,
+						"y": 59,
+						"w": 186,
+						"h": 199
+					},
+					"frame": {
+						"x": 718,
+						"y": 749,
+						"w": 186,
+						"h": 199
+					}
+				},
+				{
+					"filename": "super_explosion_3.png",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 300,
+						"h": 300
+					},
+					"spriteSourceSize": {
+						"x": 46,
+						"y": 41,
+						"w": 227,
+						"h": 175
+					},
+					"frame": {
+						"x": 880,
+						"y": 481,
+						"w": 227,
+						"h": 175
+					}
+				},
+				{
+					"filename": "super_explosion_4.png",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 300,
+						"h": 300
+					},
+					"spriteSourceSize": {
+						"x": 55,
+						"y": 24,
+						"w": 222,
+						"h": 238
+					},
+					"frame": {
+						"x": 906,
+						"y": 658,
+						"w": 222,
+						"h": 238
+					}
+				},
+				{
+					"filename": "super_explosion_6.png",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 300,
+						"h": 300
+					},
+					"spriteSourceSize": {
+						"x": 33,
+						"y": 23,
+						"w": 213,
+						"h": 172
+					},
+					"frame": {
+						"x": 1147,
+						"y": 424,
+						"w": 213,
+						"h": 172
+					}
+				},
+				{
+					"filename": "super_explosion_1.png",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 300,
+						"h": 300
+					},
+					"spriteSourceSize": {
+						"x": 61,
+						"y": 59,
+						"w": 187,
+						"h": 178
+					},
+					"frame": {
+						"x": 1130,
+						"y": 598,
+						"w": 187,
+						"h": 178
+					}
+				},
+				{
+					"filename": "super_explosion_7.png",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 300,
+						"h": 300
+					},
+					"spriteSourceSize": {
+						"x": 65,
+						"y": 66,
+						"w": 162,
+						"h": 145
+					},
+					"frame": {
+						"x": 1130,
+						"y": 778,
+						"w": 162,
+						"h": 145
+					}
+				},
+				{
+					"filename": "super_explosion_8.png",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 300,
+						"h": 300
+					},
+					"spriteSourceSize": {
+						"x": 116,
+						"y": 91,
+						"w": 74,
+						"h": 129
+					},
+					"frame": {
+						"x": 1362,
+						"y": 424,
+						"w": 74,
+						"h": 129
+					}
+				},
+				{
+					"filename": "aero_cerberus_explosion_9.png",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 300,
+						"h": 300
+					},
+					"spriteSourceSize": {
+						"x": 70,
+						"y": 114,
+						"w": 153,
+						"h": 163
+					},
+					"frame": {
+						"x": 1294,
+						"y": 778,
+						"w": 153,
+						"h": 163
+					}
+				}
+			]
+		}
+	],
+	"meta": {
+		"app": "https://www.codeandweb.com/texturepacker",
+		"version": "3.0",
+		"smartupdate": "$TexturePacker:SmartUpdate:e66e9bcf2185169b13b7b5e74b6884d2:26a14a1340aa664b87658c9bfe0a15be:cf57ba0bafeb3aa3842b5e83e21ecb1b$"
+	}
+}

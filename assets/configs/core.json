@@ -1,0 +1,136 @@
+{
+    "game": {
+        "width": 1920,
+        "height": 1080,
+        "gravity": 200,
+        "debug": false
+    },
+    "player": {
+        "defaultSpeed": 400,
+        "defaultHealth": 100,
+        "collisionSize": {
+            "width": 120,
+            "height": 180
+        },
+        "displaySize": {
+            "width": 200,
+            "height": 300
+        }
+    },
+    "items": {
+        "good": {
+            "points": 10,
+            "spawnChance": 0.4,
+            "displaySize": {
+                "width": 150,
+                "height": 225
+            },
+            "collisionSize": {
+                "width": 90,
+                "height": 135
+            },
+            "velocityRange": {
+                "x": [-100, 100],
+                "y": [150, 250]
+            },
+            "angularVelocityRange": [-100, 100]
+        },
+        "bad": {
+            "damage": 20,
+            "spawnChance": 0.5,
+            "displaySize": {
+                "width": 150,
+                "height": 225
+            },
+            "collisionSize": {
+                "width": 90,
+                "height": 135
+            },
+            "velocityRange": {
+                "x": [-100, 100],
+                "y": [150, 250]
+            },
+            "angularVelocityRange": [-100, 100]
+        },
+        "veryGood": {
+            "points": 20,
+            "healthBonus": 10,
+            "spawnChance": 0.1,
+            "displaySize": {
+                "width": 150,
+                "height": 225
+            },
+            "collisionSize": {
+                "width": 90,
+                "height": 135
+            },
+            "velocityRange": {
+                "x": [-100, 100],
+                "y": [150, 250]
+            },
+            "angularVelocityRange": [-100, 100]
+        },
+        "spawnInterval": 1000
+    },
+    "audio": {
+        "music": {
+            "volume": 0.3,
+            "defaultEnabled": true
+        },
+        "sound": {
+            "volume": 0.8,
+            "defaultEnabled": true
+        }
+    },
+    "ui": {
+        "scoreText": {
+            "x": 50,
+            "y": 50,
+            "fontSize": "32px",
+            "fill": "#ffffff"
+        },
+        "healthBar": {
+            "x": 50,
+            "y": 100,
+            "width": 300,
+            "height": 30,
+            "backgroundColor": "#333333",
+            "fillColor": "#ff0000"
+        },
+        "gameOverTitle": {
+            "x": 960,
+            "y": 540,
+            "fontSize": "64px",
+            "fill": "#ff0000"
+        },
+        "restartButton": {
+            "x": 960,
+            "y": 640,
+            "fontSize": "32px",
+            "fill": "#ffffff"
+        }
+    },
+    "levels": {
+        "level1": {
+            "name": "Уровень 1",
+            "background": "background_level1",
+            "music": "backgroundMusic_level1",
+            "goal": 500,
+            "itemSpawnRate": 1.0
+        },
+        "level2": {
+            "name": "Уровень 2",
+            "background": "background_level2",
+            "music": "backgroundMusic_level2",
+            "goal": 1000,
+            "itemSpawnRate": 1.2
+        },
+        "level3": {
+            "name": "Уровень 3",
+            "background": "background_level3",
+            "music": "backgroundMusic_level3",
+            "goal": 1500,
+            "itemSpawnRate": 1.5
+        }
+    }
+}

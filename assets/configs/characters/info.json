@@ -1,0 +1,20 @@
+{
+    "friender": {
+        "id": "friender_s",
+        "name": "Товарищ С.",
+        "texture": "friender_s",
+        "description": "Быстрый персонаж с бонусом к здоровью"
+    },
+    "trader": {
+        "id": "trader",
+        "name": "Кролик-Шнырь Облигац",
+        "texture": "trader",
+        "description": "Получает больше очков за предметы"
+    },
+    "zummer": {
+        "id": "zummer",
+        "name": "Вован - Алиэксперсс",
+        "texture": "zummer",
+        "description": "Имеет режим ярости, который активируется при сборе предметов"
+    }
+}

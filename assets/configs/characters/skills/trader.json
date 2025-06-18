@@ -1,0 +1,37 @@
+{
+    "moneyMultiplier": 1.5,
+    "sellCooldown": 5000,
+    "maxMultiplier": 2.0,
+    "healthBonus": 30,
+    "passiveSkills": [
+        {
+            "id": "money_maker",
+            "name": "Делец",
+            "description": "Получает на 50% больше очков за все предметы",
+            "config": {
+                "moneyMultiplier": 1.5
+            }
+        },
+        {
+            "id": "combo_master",
+            "name": "Мастер комбо",
+            "description": "Каждый собранный подряд предмет увеличивает множитель очков на 10% (до 5 раз)",
+            "config": {
+                "maxCombo": 5,
+                "multiplierPerCombo": 0.1,
+                "comboResetTime": 3000
+            }
+        }
+    ],
+    "activeSkills": [
+        {
+            "id": "market_crash",
+            "name": "Обвал рынка",
+            "description": "Все плохие предметы на экране превращаются в хорошие",
+            "config": {
+                "cooldown": 30000,
+                "duration": 5000
+            }
+        }
+    ]
+}

@@ -1,197 +1,222 @@
 // Функции для работы с игровыми предметами
 import { updateItemCollectionStats } from '../utils/levelUtils.js';
 import { createExplosionAnimation } from '../utils/animationUtils.js';
+import { ConfigManager, EventManager, AudioManager, ObjectPoolManager } from '../managers/index.js';
 
-// Функция отскока от стены
+/**
+ * Инициализация пулов предметов
+ * @param {Phaser.Scene} scene - Сцена игры
+ */
+function initItemPools(scene) {
+    // Получаем менеджеры
+    const configManager = ConfigManager.getInstance();
+    const objectPoolManager = ObjectPoolManager.getInstance();
+    
+    // Получаем конфигурации предметов
+    const goodItemConfig = configManager.getValue('core', 'items.good', {});
+    const badItemConfig = configManager.getValue('core', 'items.bad', {});
+    const veryGoodItemConfig = configManager.getValue('core', 'items.veryGood', {});
+    
+    // Создаем пул хороших предметов
+    objectPoolManager.createPool('goodItems', scene, 'goodItem', (item) => {
+        setupItem(item, 'good');
+    }, 20);
+    
+    // Создаем пул плохих предметов
+    objectPoolManager.createPool('badItems', scene, 'badItem', (item) => {
+        setupItem(item, 'bad');
+    }, 20);
+    
+    // Создаем пул очень хороших предметов
+    objectPoolManager.createPool('veryGoodItems', scene, 'veryGoodItem', (item) => {
+        setupItem(item, 'veryGood');
+    }, 10);
+    
+    // Создаем пул взрывов
+    objectPoolManager.createPool('explosions', scene, 'explosion', (explosion) => {
+        explosion.setDisplaySize(600, 600);
+        explosion.setOrigin(0.5, 0.5);
+        explosion.setFlipY(false);
+    }, 5);
+    
+    // Создаем анимацию взрыва
+    createExplosionAnimation(scene);
+}
+
+/**
+ * Функция отскока от стены
+ * @param {Phaser.Physics.Arcade.Sprite} item - Предмет
+ * @param {Phaser.Physics.Arcade.Sprite} wall - Стена
+ */
 function bounceOffWall(item, wall) {
     // Просто отскакиваем, физика Arcade сама обрабатывает отскок
     // Можно добавить дополнительную логику при необходимости
 }
 
-// Функция сбора хорошего предмета
-function collectGoodItem(player, item) {
-    item.disableBody(true, true);
+/**
+ * Функция настройки предмета
+ * @param {Phaser.Physics.Arcade.Sprite} item - Предмет
+ * @param {string} type - Тип предмета (good, bad, veryGood)
+ * @returns {Phaser.Physics.Arcade.Sprite} Настроенный предмет
+ */
+function setupItem(item, type) {
+    // Получаем менеджер конфигураций
+    const configManager = ConfigManager.getInstance();
     
-    // Если у предмета есть текст, удаляем его
-    if (item.itemText) {
-        item.itemText.destroy();
-    }
+    // Получаем конфигурацию предмета
+    const itemConfig = configManager.getValue('core', `items.${type}`, {});
     
-    // Увеличиваем счет
-    window.score += 10;
-    window.scoreText.setText('Очки: ' + window.score);
+    // Настраиваем размеры
+    const displaySize = itemConfig.displaySize || { width: 150, height: 225 };
+    const collisionSize = itemConfig.collisionSize || { width: 90, height: 135 };
     
-    // Обновляем статистику собранных предметов для достижений
-    updateItemCollectionStats('good');
-}
-
-// Функция сбора очень хорошего предмета
-function collectVeryGoodItem(player, item) {
-    item.disableBody(true, true);
-    
-    // Если у предмета есть текст, удаляем его
-    if (item.itemText) {
-        item.itemText.destroy();
-    }
-    
-    // Звук "ням-ням" больше не используется
-    
-    // Увеличиваем счет больше, чем за обычный хороший предмет
-    window.score += 25;
-    window.scoreText.setText('Очки: ' + window.score);
-    
-    // Восстанавливаем здоровье
-    window.health = Math.min(window.health + 15, 100);
-    window.healthText.setText('Здоровье: ' + window.health);
-    
-    // Обновляем статистику собранных предметов для достижений
-    updateItemCollectionStats('veryGood');
-}
-
-// Функция создания эффекта взрыва
-function createExplosionEffect(scene, x, y) {
-    if (!scene) {
-        console.warn('Сцена не найдена');
-        return null;
-    }
-    
-    // Проверяем и создаем анимацию при необходимости
-    if (!scene.anims.exists('explode')) {
-        if (!createExplosionAnimation(scene)) {
-            return null;
-        }
-    }
-    
-    // Используем точную позицию без смещения
-    // Создаем спрайт взрыва
-    const explosion = window.explosions.create(x, y, 'explosion');
-    
-    // Настраиваем спрайт
-    explosion.setFlipY(false) // Отключаем переворот по вертикали
-             .setDepth(1000)
-             .setDisplaySize(600, 600)
-             .setVisible(true)
-             .setAlpha(1)
-             .setOrigin(0.5, 0.5); // Центрируем спрайт
-    
-    // Запускаем анимацию
-    try {
-        explosion.play('explode');
-    } catch (error) {
-        console.error('Ошибка при запуске анимации взрыва:', error);
-    }
-    
-    // Настраиваем автоматическое удаление
-    scene.time.delayedCall(1000, () => {
-        if (explosion && explosion.active) {
-            explosion.destroy();
-        }
-    });
-    
-    // Добавляем обработчик завершения анимации
-    explosion.once('animationcomplete', () => {
-        if (explosion && explosion.active) {
-            explosion.destroy();
-        }
-    });
-    
-    return explosion;
-}
-
-// Функция воспроизведения звука
-function playSound(sound) {
-    if (!sound) return;
-    
-    const soundEnabled = localStorage.getItem('soundEnabled') === 'true';
-    if (soundEnabled) {
-        try {
-            sound.play();
-        } catch (error) {
-            console.error('Ошибка воспроизведения звука:', error);
-        }
-    }
-}
-
-// Функция столкновения с плохим предметом
-function hitBadItem(player, item) {
-    // Проверяем активность предмета
-    if (!item.active) return;
-    
-    // Удаляем предмет
-    item.disableBody(true, true);
-    
-    // Удаляем текст предмета, если есть
-    if (item.itemText) {
-        item.itemText.destroy();
-        item.itemText = null;
-    }
-    
-    // Воспроизводим звук взрыва
-    playSound(window.explosionSound);
-    
-    // Создаем эффект взрыва
-    createExplosionEffect(window.gameScene, player.x, player.y);
-    
-    // Уменьшаем здоровье
-    window.health -= 20;
-    window.healthText.setText('Здоровье: ' + window.health);
-    
-    // Проверяем, не закончилась ли игра
-    if (window.health <= 0) {
-        window.gameOver = true;
-        player.setTint(0xff0000);
-        window.gameOverText.visible = true;
-        window.restartText.visible = true;
-    }
-}
-
-// Функция настройки предмета
-function setupItem(item) {
-    item.setDisplaySize(150, 225);
+    item.setDisplaySize(displaySize.width, displaySize.height);
     
     // Уменьшаем коллизионную область, но сохраняем визуальный размер
-    const textureWidth = 150;
-    const textureHeight = 225;
-    const collisionWidth = textureWidth * 0.6;
-    const collisionHeight = textureHeight * 0.6;
-    const offsetX = (textureWidth - collisionWidth) / 2;
-    const offsetY = (textureHeight - collisionHeight) / 2;
+    const offsetX = (displaySize.width - collisionSize.width) / 2;
+    const offsetY = (displaySize.height - collisionSize.height) / 2;
     
-    item.setSize(collisionWidth, collisionHeight);
+    item.setSize(collisionSize.width, collisionSize.height);
     item.setOffset(offsetX, offsetY);
-    item.setVelocity(Phaser.Math.Between(-100, 100), Phaser.Math.Between(150, 250));
-    item.setAngularVelocity(Phaser.Math.Between(-100, 100));
+    
+    // Настраиваем физические свойства
+    const velocityRange = itemConfig.velocityRange || { x: [-100, 100], y: [150, 250] };
+    const angularVelocityRange = itemConfig.angularVelocityRange || [-100, 100];
+    
+    item.setVelocity(
+        Phaser.Math.Between(velocityRange.x[0], velocityRange.x[1]),
+        Phaser.Math.Between(velocityRange.y[0], velocityRange.y[1])
+    );
+    
+    item.setAngularVelocity(Phaser.Math.Between(angularVelocityRange[0], angularVelocityRange[1]));
     item.setBounce(1, 0);
     item.itemText = null;
-    item.update = function() { /* Пустая функция обновления */ };
     
     return item;
 }
 
-// Функция создания объектов
+/**
+ * Функция создания объектов
+ * @param {Phaser.Scene} scene - Сцена
+ */
 function spawnItems(scene) {
+    // Получаем менеджеры
+    const configManager = ConfigManager.getInstance();
+    const objectPoolManager = ObjectPoolManager.getInstance();
+    const eventManager = EventManager.getInstance();
+    
+    // Получаем конфигурацию предметов
+    const itemsConfig = configManager.getValue('core', 'items', {});
+    
+    // Определяем позицию спавна
     const x = Phaser.Math.Between(100, 1820);
-    const itemType = Phaser.Math.Between(1, 10);
     
-    let item;
+    // Определяем тип предмета на основе шансов из конфига
+    const rand = Math.random();
+    let itemType;
+    let poolName;
     
-    if (itemType <= 5) {
-        // 50% шанс плохого блока
-        item = setupItem(window.badItems.create(x, 0, 'badItem'));
-    } else if (itemType <= 9) {
-        // 40% шанс хорошего блока
-        item = setupItem(window.goodItems.create(x, 0, 'goodItem'));
+    const badChance = itemsConfig.bad?.spawnChance || 0.5;
+    const goodChance = itemsConfig.good?.spawnChance || 0.4;
+    const veryGoodChance = itemsConfig.veryGood?.spawnChance || 0.1;
+    
+    // Нормализуем шансы
+    const totalChance = badChance + goodChance + veryGoodChance;
+    const normalizedBadChance = badChance / totalChance;
+    const normalizedGoodChance = goodChance / totalChance;
+    
+    if (rand < normalizedBadChance) {
+        itemType = 'bad';
+        poolName = 'badItems';
+    } else if (rand < normalizedBadChance + normalizedGoodChance) {
+        itemType = 'good';
+        poolName = 'goodItems';
     } else {
-        // 10% шанс очень хорошего блока
-        item = setupItem(window.veryGoodItems.create(x, 0, 'veryGoodItem'));
+        itemType = 'veryGood';
+        poolName = 'veryGoodItems';
     }
+    
+    // Получаем предмет из пула
+    const item = objectPoolManager.get(poolName, x, 0);
+    
+    // Если не удалось получить предмет, выходим
+    if (!item) return;
+    
+    // Настраиваем предмет
+    setupItem(item, itemType);
+    
+    // Оповещаем о создании предмета через Event Bus
+    eventManager.emit('ITEM_SPAWNED', { type: itemType, item });
+}
+
+/**
+ * Настройка коллизий для предметов
+ * @param {Phaser.Scene} scene - Сцена
+ * @param {Phaser.Physics.Arcade.Sprite} player - Спрайт игрока
+ * @param {Array} walls - Массив стен
+ */
+function setupItemCollisions(scene, player, walls) {
+    // Получаем менеджеры
+    const objectPoolManager = ObjectPoolManager.getInstance();
+    
+    // Получаем пулы предметов
+    const goodItems = objectPoolManager.getPool('goodItems');
+    const badItems = objectPoolManager.getPool('badItems');
+    const veryGoodItems = objectPoolManager.getPool('veryGoodItems');
+    
+    // Если пулы не созданы, выходим
+    if (!goodItems || !badItems || !veryGoodItems) return;
+    
+    // Настраиваем коллизии со стенами
+    walls.forEach(wall => {
+        scene.physics.add.collider(goodItems, wall, bounceOffWall, null, scene);
+        scene.physics.add.collider(badItems, wall, bounceOffWall, null, scene);
+        scene.physics.add.collider(veryGoodItems, wall, bounceOffWall, null, scene);
+    });
+    
+    // Получаем персонажа из Registry
+    const gameCharacter = scene.registry.get('gameCharacter');
+    
+    // Настраиваем перекрытия с игроком
+    scene.physics.add.overlap(player, goodItems, (player, item) => {
+        if (gameCharacter && gameCharacter.collectGoodItem) {
+            gameCharacter.collectGoodItem(item);
+        }
+    }, null, scene);
+    
+    scene.physics.add.overlap(player, badItems, (player, item) => {
+        if (gameCharacter && gameCharacter.hitBadItem) {
+            gameCharacter.hitBadItem(item);
+        }
+    }, null, scene);
+    
+    scene.physics.add.overlap(player, veryGoodItems, (player, item) => {
+        if (gameCharacter && gameCharacter.collectVeryGoodItem) {
+            gameCharacter.collectVeryGoodItem(item);
+        }
+    }, null, scene);
+}
+
+/**
+ * Очистка всех предметов
+ * @param {Phaser.Scene} scene - Сцена
+ */
+function clearAllItems(scene) {
+    // Получаем менеджер пулов объектов
+    const objectPoolManager = ObjectPoolManager.getInstance();
+    
+    // Очищаем все пулы предметов
+    objectPoolManager.clearPool('goodItems');
+    objectPoolManager.clearPool('badItems');
+    objectPoolManager.clearPool('veryGoodItems');
+    objectPoolManager.clearPool('explosions');
 }
 
 // Экспортируем функции
 export {
+    initItemPools,
     bounceOffWall,
-    collectGoodItem,
-    collectVeryGoodItem,
-    hitBadItem,
-    spawnItems
+    spawnItems,
+    setupItemCollisions,
+    clearAllItems
 };

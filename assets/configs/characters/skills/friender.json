@@ -1,0 +1,22 @@
+{
+    "passiveSkills": [
+        {
+            "id": "lucky_find",
+            "name": "Счастливая находка",
+            "description": "10% шанс получить дополнительные 10 очков при сборе супер-блока",
+            "config": {
+                "chance": 0.1,
+                "bonusPoints": 10
+            }
+        },
+        {
+            "id": "health_boost",
+            "name": "Здоровяк",
+            "description": "Получает на 5 единиц здоровья больше от супер-блоков",
+            "config": {
+                "healthBonus": 5
+            }
+        }
+    ],
+    "activeSkills": []
+}

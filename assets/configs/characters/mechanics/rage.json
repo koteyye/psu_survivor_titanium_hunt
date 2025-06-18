@@ -1,0 +1,14 @@
+{
+    "zummer": {
+        "enabled": true,
+        "maxRage": 100,
+        "rageGainPerHit": 20,
+        "rageDrainRate": 0.5,
+        "rageMode": {
+            "duration": 5000,
+            "speedMultiplier": 1.5,
+            "damageReduction": 10,
+            "activationThreshold": 100
+        }
+    }
+}

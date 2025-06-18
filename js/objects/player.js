@@ -1,12 +1,21 @@
 // Функции для работы с игроком
-import { updateGameUI } from '../scenes/base/GameLevelUI.js';
+import { ConfigManager, EventManager, AudioManager, ObjectPoolManager } from '../managers/index.js';
 
-// Функция перезапуска игры
+/**
+ * Функция перезапуска игры
+ * @param {Phaser.Scene} scene - Сцена игры
+ */
 function restartGame(scene) {
-    // Сбрасываем переменные
-    window.score = 0;
-    window.health = 100;
-    window.gameOver = false;
+    // Получаем менеджеры
+    const configManager = ConfigManager.getInstance();
+    const eventManager = EventManager.getInstance();
+    const audioManager = AudioManager.getInstance();
+    const objectPoolManager = ObjectPoolManager.getInstance();
+    
+    // Сбрасываем переменные через Registry вместо window.*
+    scene.registry.set('score', 0);
+    scene.registry.set('health', configManager.getValue('core', 'player.defaultHealth', 100));
+    scene.registry.set('gameOver', false);
     
     // Скрываем элементы Game Over
     if (scene && scene.gameOverTitle) {
@@ -16,72 +25,67 @@ function restartGame(scene) {
         scene.restartText.setVisible(false);
     }
     
-    // Обновляем UI через функцию updateGameUI
-    if (scene) {
-        updateGameUI(scene);
-    }
+    // Обновляем UI через Event Bus
+    eventManager.emit('UI_UPDATE', { 
+        score: scene.registry.get('score'),
+        health: scene.registry.get('health')
+    });
     
     // Удаляем текст подтверждения перезапуска, если он есть
-    if (window.confirmRestartText) {
-        window.confirmRestartText.destroy();
-        window.confirmRestartText = null;
+    if (scene.confirmRestartText) {
+        scene.confirmRestartText.destroy();
+        scene.confirmRestartText = null;
     }
     
     // Восстанавливаем игрока
-    if (window.player) {
-        window.player.clearTint();
-        window.player.setPosition(960, 900);
-        window.player.setVelocity(0, 0); // Сбрасываем скорость игрока
-        window.player.setAngle(0); // Сбрасываем угол наклона
+    const player = scene.registry.get('playerSprite');
+    if (player) {
+        player.clearTint();
+        player.setPosition(960, 900);
+        player.setVelocity(0, 0); // Сбрасываем скорость игрока
+        player.setAngle(0); // Сбрасываем угол наклона
         
         // Явно включаем физику для игрока
-        if (window.player.body) {
-            window.player.body.enable = true;
+        if (player.body) {
+            player.body.enable = true;
         }
     }
     
     // Сбрасываем состояние персонажа, если используется новая система
-    if (window.gameCharacter) {
+    const gameCharacter = scene.registry.get('gameCharacter');
+    if (gameCharacter) {
         // Сбрасываем специфические для персонажа состояния
-        if (window.gameCharacter.resetCombo) {
-            window.gameCharacter.resetCombo();
+        if (gameCharacter.resetCombo) {
+            gameCharacter.resetCombo();
         }
         
-        if (window.gameCharacter.deactivateRageMode) {
-            window.gameCharacter.deactivateRageMode();
+        if (gameCharacter.deactivateRageMode) {
+            gameCharacter.deactivateRageMode();
         }
+        
+        // Оповещаем о сбросе персонажа через Event Bus
+        eventManager.emit('CHARACTER_RESET', gameCharacter);
     }
     
-    // Сбрасываем скорость и очищаем все предметы
-    [window.goodItems, window.badItems, window.veryGoodItems].forEach(group => {
-        if (group && group.getChildren) {
-            // Сначала сбрасываем скорость всех предметов
-            group.getChildren().forEach(item => {
-                if (item && item.active) {
-                    item.setVelocity(0, 0);
-                    item.setAngularVelocity(0);
-                }
-            });
-        }
-        // Затем очищаем группу
-        if (group && group.clear) {
-            group.clear(true, true);
+    // Очищаем все пулы предметов
+    ['goodItems', 'badItems', 'veryGoodItems'].forEach(poolName => {
+        if (objectPoolManager.getPool(poolName)) {
+            objectPoolManager.clearPool(poolName);
         }
     });
     
-    // Очищаем группу взрывов, если она существует
-    if (window.explosions && window.explosions.clear) {
-        window.explosions.clear(true, true);
+    // Очищаем пул взрывов
+    if (objectPoolManager.getPool('explosions')) {
+        objectPoolManager.clearPool('explosions');
     }
     
     // Перезапускаем фоновую музыку, если она остановлена и если музыка включена в настройках
-    const musicEnabled = localStorage.getItem('musicEnabled') === 'true';
-    if (musicEnabled && window.backgroundMusic && !window.backgroundMusic.isPlaying) {
-        window.backgroundMusic.play();
+    if (audioManager.musicEnabled && scene.registry.get('currentMusic')) {
+        audioManager.playMusic(scene.registry.get('currentMusic'));
     }
     
     // Сбрасываем время спавна предметов
-    window.itemSpawnTime = 0;
+    scene.registry.set('itemSpawnTime', 0);
     
     // Всегда возобновляем физику при перезапуске
     scene.physics.resume();
@@ -100,6 +104,9 @@ function restartGame(scene) {
             scene.resumeText.visible = false;
         }
     }
+    
+    // Оповещаем о перезапуске игры через Event Bus
+    eventManager.emit('GAME_RESTART');
     
     console.log('Игра перезапущена!');
 }

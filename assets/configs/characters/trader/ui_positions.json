@@ -1,0 +1,75 @@
+{
+  "moneyBar": {
+    "x": 300,
+    "y": 150,
+    "width": 400,
+    "height": 30
+  },
+  "basket": {
+    "icon": {
+      "x": 250,
+      "y": 200,
+      "size": 48,
+      "glowSize": 54,
+      "glowAlpha": 0.5,
+      "glowColor": "0xffff00"
+    },
+    "text": {
+      "x": 300,
+      "y": 200,
+      "originX": 0,
+      "originY": 0.5
+    }
+  },
+  "graph": {
+    "x": "SCREEN_WIDTH-200",
+    "y": 300,
+    "labels": {
+      "title": {
+        "x": 0,
+        "y": -120,
+        "originX": 0.5,
+        "originY": 0.5
+      },
+      "sellHint": {
+        "x": 0,
+        "y": 120,
+        "originX": 0.5,
+        "originY": 0.5
+      },
+      "zoneLabel": {
+        "x": -140,
+        "y": 0,
+        "originX": 0,
+        "originY": 0.5
+      },
+      "startPoint": {
+        "x": -150,
+        "y": -15,
+        "originX": 0.5,
+        "originY": 0.5
+      }
+    },
+    "points": {
+      "start": {
+        "x": -150,
+        "y": 0,
+        "radius": 6,
+        "strokeWidth": 2,
+        "strokeColor": "0x000000"
+      },
+      "control": {
+        "x": 150,
+        "y": 0,
+        "radius": 10,
+        "strokeWidth": 3,
+        "strokeColor": "0x000000"
+      }
+    }
+  },
+  "floatingText": {
+    "offsetY": -50,
+    "originX": 0.5,
+    "originY": 0.5
+  }
+}

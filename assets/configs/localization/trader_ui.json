@@ -1,0 +1,60 @@
+{
+  "ru": {
+    "graph": {
+      "title": "ИНВЕСТИЦИОННЫЙ ГРАФИК",
+      "startPointText": "СТАРТ",
+      "sellHint": "Нажмите W для продажи",
+      "multiplierTooltip": "Множитель: x{value}",
+      "zones": {
+        "loss": "УБЫТОК",
+        "x1": "x1",
+        "x2": "x2",
+        "x3": "x3"
+      }
+    },
+    "floatingText": {
+      "sell": {
+        "profit": "+{value}",
+        "loss": "-{value}"
+      },
+      "buy": "Куплено: {value}"
+    },
+    "errors": {
+      "graphCreation": "Ошибка создания инвестиционного графика",
+      "moneyBarCreation": "Ошибка создания UI денег",
+      "missingTexture": {
+        "moneyIcon": "Текстура moneyIcon не найдена, шкала денег не будет отображаться",
+        "basketIcon": "Текстура basketIcon не найдена, иконка корзины не будет отображаться"
+      }
+    }
+  },
+  "en": {
+    "graph": {
+      "title": "INVESTMENT GRAPH",
+      "startPointText": "START",
+      "sellHint": "Press W to sell",
+      "multiplierTooltip": "Multiplier: x{value}",
+      "zones": {
+        "loss": "LOSS",
+        "x1": "x1",
+        "x2": "x2",
+        "x3": "x3"
+      }
+    },
+    "floatingText": {
+      "sell": {
+        "profit": "+{value}",
+        "loss": "-{value}"
+      },
+      "buy": "Bought: {value}"
+    },
+    "errors": {
+      "graphCreation": "Error creating investment graph",
+      "moneyBarCreation": "Error creating money UI",
+      "missingTexture": {
+        "moneyIcon": "MoneyIcon texture not found, money bar will not be displayed",
+        "basketIcon": "BasketIcon texture not found, basket icon will not be displayed"
+      }
+    }
+  }
+}

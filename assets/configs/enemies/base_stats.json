@@ -1,0 +1,16 @@
+{
+    "badItem": {
+        "damage": 20,
+        "points": 5,
+        "speed": 1.0
+    },
+    "goodItem": {
+        "points": 10,
+        "speed": 1.0
+    },
+    "veryGoodItem": {
+        "points": 20,
+        "healthBonus": 10,
+        "speed": 0.8
+    }
+}

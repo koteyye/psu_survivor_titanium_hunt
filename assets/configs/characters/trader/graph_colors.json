@@ -1,0 +1,11 @@
+{
+  "background": "0x000000",
+  "border": "0x00ff00",
+  "mainAxis": "0xffffff",
+  "lossZone": "0xff0000",
+  "x1Zone": "0x00aa00",
+  "x2Zone": "0x00dd00", 
+  "x3Zone": "0x00ff00",
+  "startPoint": "0xffff00",
+  "controlPoint": "0x00ffff"
+}

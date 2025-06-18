@@ -1,6 +1,6 @@
 // Экспорт всех классов персонажей
-export { BaseCharacter } from './BaseCharacter.js';
-export { FrienderCharacter } from './FrienderCharacter.js';
-export { TraderCharacter } from './TraderCharacter/index.js';
-export { ZummerCharacter } from './ZummerCharacter.js';
-export { CharacterFactory } from './CharacterFactory.js';
+export { BaseCharacter } from './base_character.js';
+export { FrienderCharacter } from './friender_character.js';
+export { TraderCharacter } from './trader_character.js';
+export { ZummerCharacter } from './zummer_character.js';
+export { CharacterFactory } from './character_factory.js';
