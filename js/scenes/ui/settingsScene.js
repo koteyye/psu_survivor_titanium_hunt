@@ -1,5 +1,6 @@
 // Сцена настроек
 import { CyberButton, CyberTitle, CyberSwitch } from '../../ui/index.js';
+import { AudioManager } from '../../managers/index.js';
 
 export class SettingsScene extends Phaser.Scene {
     constructor() {
@@ -21,6 +22,10 @@ export class SettingsScene extends Phaser.Scene {
     }
 
     create() {
+        // Инициализируем AudioManager
+        const audioManager = AudioManager.getInstance();
+        audioManager.init(this);
+        
         // Добавляем фоновое изображение
         this.add.image(960, 540, 'menuBackground').setDisplaySize(1920, 1080);
         
@@ -38,10 +43,9 @@ export class SettingsScene extends Phaser.Scene {
         );
         this.uiElements.push(title);
         
-        // Получаем текущие настройки из localStorage
-        // По умолчанию настройки включены (установлено в game.js)
-        const musicEnabled = localStorage.getItem('musicEnabled') === 'true';
-        const soundEnabled = localStorage.getItem('soundEnabled') === 'true';
+        // Получаем текущие настройки из AudioManager
+        const musicEnabled = audioManager.musicEnabled;
+        const soundEnabled = audioManager.soundEnabled;
         
         // Создаем большую иконку музыки
         const musicIcon = this.add.image(700, 450, 'musicIcon');
@@ -62,29 +66,8 @@ export class SettingsScene extends Phaser.Scene {
             '', // Убираем текст
             musicEnabled, 
             (enabled) => {
-                localStorage.setItem('musicEnabled', enabled);
-                // Применяем настройку сразу
-                // Для музыки игры
-                if (window.backgroundMusic) {
-                    if (enabled) {
-                        if (!window.backgroundMusic.isPlaying && this.scene.key === 'MainScene') {
-                            window.backgroundMusic.play();
-                        }
-                    } else {
-                        window.backgroundMusic.stop();
-                    }
-                }
-                
-                // Для музыки меню
-                if (window.menuMusic) {
-                    if (enabled) {
-                        if (!window.menuMusic.isPlaying && this.scene.key === 'MenuScene') {
-                            window.menuMusic.play();
-                        }
-                    } else {
-                        window.menuMusic.stop();
-                    }
-                }
+                // Используем AudioManager для управления музыкой
+                audioManager.setMusicEnabled(enabled);
             },
             {
                 width: 100,
@@ -113,15 +96,8 @@ export class SettingsScene extends Phaser.Scene {
             '', // Убираем текст
             soundEnabled, 
             (enabled) => {
-                localStorage.setItem('soundEnabled', enabled);
-                // Настройка будет применена при следующем воспроизведении звука
-                // Если звуки выключены, останавливаем все текущие звуковые эффекты
-                if (!enabled) {
-                    if (window.explosionSound) {
-                        window.explosionSound.stop();
-                    }
-                    // Звук nyamnyamSound больше не используется
-                }
+                // Используем AudioManager для управления звуками
+                audioManager.setSoundEnabled(enabled);
             },
             {
                 width: 100,

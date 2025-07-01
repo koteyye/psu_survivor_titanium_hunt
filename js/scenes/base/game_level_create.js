@@ -6,27 +6,26 @@ import { createGameUI, showLevelCompletedUI, updateGameUI } from './game_level_u
 import { CharacterFactory } from '../../objects/characters/index.js';
 import { CyberTitle } from '../../ui/index.js';
 import { initShaders } from '../../utils/shader_utils.js';
+import { initItemPools, setupItemCollisions } from '../../objects/items.js';
+import { AudioManager } from '../../managers/index.js';
 
 // Основная функция создания игровых объектов
 export function createLevelObjects(scene) {
+    // Инициализируем AudioManager
+    const audioManager = AudioManager.getInstance();
+    audioManager.init(scene);
+    
     // Добавляем фоновое изображение с уникальным ключом для каждого уровня
     scene.add.image(960, 540, `background_level${scene.levelId}`).setDisplaySize(1920, 1080);
     
-    // Останавливаем предыдущую музыку, если она играет
-    const backgroundMusic = scene.registry.get('backgroundMusic');
-    if (backgroundMusic && backgroundMusic.isPlaying) {
-        backgroundMusic.stop();
-    }
+    // Останавливаем предыдущую музыку через AudioManager
+    audioManager.stopMusic();
     
-    // Добавляем фоновую музыку с уникальным ключом для каждого уровня
-    const newBackgroundMusic = scene.sound.add(`backgroundMusic_level${scene.levelId}`, { loop: true, volume: 0.3 });
-    scene.registry.set('backgroundMusic', newBackgroundMusic);
+    // Добавляем фоновую музыку с уникальным ключом для каждого уровня через AudioManager
+    audioManager.addMusic(`backgroundMusic_level${scene.levelId}`, `backgroundMusic_level${scene.levelId}`, { loop: true, volume: 0.3 });
     
-    // Проверяем настройки музыки
-    const musicEnabled = localStorage.getItem('musicEnabled') === 'true';
-    if (musicEnabled) {
-        newBackgroundMusic.play();
-    }
+    // Воспроизводим музыку через AudioManager (он сам проверит настройки)
+    audioManager.playMusic(`backgroundMusic_level${scene.levelId}`);
     
     // Инициализируем время спавна предметов
     scene.registry.set('itemSpawnTime', 0);
@@ -47,30 +46,26 @@ export function createLevelObjects(scene) {
 
 // Создание игровых сущностей (игрок, предметы, стены)
 function createGameEntities(scene) {
-    // Добавляем звуковые эффекты
-    const explosionSound = scene.sound.add('explosionSound', { volume: 0.8 });
-    scene.registry.set('explosionSound', explosionSound);
+    // Добавляем звуковые эффекты только если они загружены
+    if (scene.cache.audio.exists('explosionSound')) {
+        // Добавляем звук взрыва через AudioManager
+        const audioManager = AudioManager.getInstance();
+        audioManager.addSound('explosionSound', 'explosionSound', { volume: 0.8 });
+    } else {
+        console.warn('Звук взрыва не найден в кэше!');
+    }
     // Звук nyamnyamSound больше не используется
-    
-    // Инициализация шейдеров
+      // Инициализация шейдеров
     initShaders(scene);
     
     // Создание анимации взрыва
-    createExplosionAnimation(scene);
+    createExplosionAnimation(scene);    // Инициализация пулов предметов
+    initItemPools(scene);
     
-    // Создание групп объектов
-    const goodItems = scene.physics.add.group();
-    const badItems = scene.physics.add.group();
-    const veryGoodItems = scene.physics.add.group();
-    const explosions = scene.physics.add.group();
+    // Создание игрока
+    createPlayer(scene);
     
-    // Сохраняем группы в Registry
-    scene.registry.set('goodItems', goodItems);
-    scene.registry.set('badItems', badItems);
-    scene.registry.set('veryGoodItems', veryGoodItems);
-    scene.registry.set('explosions', explosions);
-    
-    // Создаем невидимые стены по бокам
+    // Создаем невидимые стены по бокам для отскока предметов
     const leftWall = scene.physics.add.staticGroup();
     const rightWall = scene.physics.add.staticGroup();
     
@@ -78,22 +73,20 @@ function createGameEntities(scene) {
     leftWall.create(0, 540, 'player').setScale(0.1, 18).refreshBody().setVisible(false);
     rightWall.create(1920, 540, 'player').setScale(0.1, 18).refreshBody().setVisible(false);
     
-    // Настраиваем коллизии со стенами
-    scene.physics.add.collider(goodItems, leftWall, scene.bounceOffWall, null, scene);
-    scene.physics.add.collider(goodItems, rightWall, scene.bounceOffWall, null, scene);
-    scene.physics.add.collider(badItems, leftWall, scene.bounceOffWall, null, scene);
-    scene.physics.add.collider(badItems, rightWall, scene.bounceOffWall, null, scene);
-    scene.physics.add.collider(veryGoodItems, leftWall, scene.bounceOffWall, null, scene);
-    scene.physics.add.collider(veryGoodItems, rightWall, scene.bounceOffWall, null, scene);
+    // Сохраняем стены в Registry для последующего использования
+    scene.registry.set('leftWall', leftWall);
+    scene.registry.set('rightWall', rightWall);
     
-    // Создание игрока
-    createPlayer(scene);
-    
-    // Добавление коллизий
+    // ТЕПЕРЬ настраиваем коллизии после создания и игрока, и стен
+    const gameCharacter = scene.registry.get('gameCharacter');
     const playerSprite = scene.registry.get('playerSprite');
-    scene.physics.add.overlap(playerSprite, goodItems, scene.collectGoodItem, null, scene);
-    scene.physics.add.overlap(playerSprite, badItems, scene.hitBadItem, null, scene);
-    scene.physics.add.overlap(playerSprite, veryGoodItems, scene.collectVeryGoodItem, null, scene);
+    
+    if (gameCharacter && playerSprite) {
+        console.log('Финальная настройка коллизий...');
+        setupItemCollisions(scene, playerSprite, [leftWall, rightWall]);
+    } else {
+        console.error('Не удалось настроить коллизии - персонаж или спрайт не найден!');
+    }
     
     // Сохраняем ссылку на сцену в Registry
     scene.registry.set('gameScene', scene);
@@ -114,11 +107,14 @@ function createPlayer(scene) {
         // Проверяем текстуру выбранного персонажа
         if (scene.textures.exists(characterTexture)) {
             // Создаем персонажа с помощью фабрики
-            // CharacterFactory уже сохраняет персонажа в Registry как 'gameCharacter'
+            // CharacterFactory автоматически сохраняет персонажа в Registry как 'gameCharacter'
             const gameCharacter = CharacterFactory.createCharacter(scene, 960, 900, characterTexture);
             
             // Воспроизводим звук выбора персонажа
             gameCharacter.playSelectSound();
+            
+            console.log('Персонаж создан через CharacterFactory:', gameCharacter);
+            console.log('Спрайт персонажа:', gameCharacter.sprite);
         } else {
             // Создаем спрайт игрока напрямую (запасной вариант)
             const player = scene.physics.add.sprite(960, 900, 'player');
@@ -126,20 +122,27 @@ function createPlayer(scene) {
             player.setDisplaySize(200, 300);
             
             // Сохраняем игрока в Registry
-            scene.registry.set('gameCharacter', player);
+            scene.registry.set('gameCharacter', { sprite: player });
+            console.log('Создан запасной игрок:', player);
         }
         
         // Настраиваем спрайт игрока
-        const player = scene.registry.get('gameCharacter');
-        if (player) {
+        const currentGameCharacter = scene.registry.get('gameCharacter');
+        if (currentGameCharacter && currentGameCharacter.sprite) {
+            const playerSprite = currentGameCharacter.sprite;
+            
             // Принудительно делаем спрайт видимым и устанавливаем прозрачность
-            if (player.sprite) {
-                player.sprite.setVisible(true);
-                player.sprite.setAlpha(1);
-            } else {
-                console.warn('У персонажа отсутствует спрайт');
-            }
+            playerSprite.setVisible(true);
+            playerSprite.setAlpha(1);
+            
+            // Сохраняем правильный спрайт игрока для коллизий
+            scene.registry.set('playerSprite', playerSprite);
+            console.log('Спрайт игрока сохранен для коллизий:', playerSprite);
+            console.log('У спрайта есть физическое тело:', !!playerSprite.body);
+        } else {
+            console.error('Персонаж не создан или у него отсутствует спрайт!');
         }
+        
     } catch (e) {
         console.error('Ошибка при создании игрока:', e);
         console.error(e.stack);

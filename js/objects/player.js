@@ -16,13 +16,15 @@ function restartGame(scene) {
     scene.registry.set('score', 0);
     scene.registry.set('health', configManager.getValue('core', 'player.defaultHealth', 100));
     scene.registry.set('gameOver', false);
-    
-    // Скрываем элементы Game Over
+      // Скрываем элементы Game Over
     if (scene && scene.gameOverTitle) {
         scene.gameOverTitle.setVisible(false);
     }
     if (scene && scene.restartText) {
         scene.restartText.setVisible(false);
+    }
+    if (scene && scene.gameOverBackground) {
+        scene.gameOverBackground.setVisible(false);
     }
     
     // Обновляем UI через Event Bus
@@ -67,17 +69,8 @@ function restartGame(scene) {
         eventManager.emit('CHARACTER_RESET', gameCharacter);
     }
     
-    // Очищаем все пулы предметов
-    ['goodItems', 'badItems', 'veryGoodItems'].forEach(poolName => {
-        if (objectPoolManager.getPool(poolName)) {
-            objectPoolManager.clearPool(poolName);
-        }
-    });
-    
-    // Очищаем пул взрывов
-    if (objectPoolManager.getPool('explosions')) {
-        objectPoolManager.clearPool('explosions');
-    }
+    // Полностью уничтожаем все пулы предметов (для предотвращения ошибок при повторном запуске)
+    objectPoolManager.destroyAllPools();
     
     // Перезапускаем фоновую музыку, если она остановлена и если музыка включена в настройках
     if (audioManager.musicEnabled && scene.registry.get('currentMusic')) {

@@ -2,6 +2,7 @@
 import { levelManager } from '../../utils/levelManager.js';
 import { CyberButton, CyberTitle } from '../../ui/index.js';
 import { ConfigManager } from '../../managers/config_manager.js';
+import { AudioManager } from '../../managers/index.js';
 
 export class MenuScene extends Phaser.Scene {
     constructor() {
@@ -15,10 +16,8 @@ export class MenuScene extends Phaser.Scene {
         
         // Загружаем музыку для меню
         this.load.audio('menuMusic', 'assets/sounds/menu/menu_background.wav');
-        
-        // Загружаем иконки для UI
+          // Загружаем иконки для UI
         this.load.image('soundIcon', 'assets/ui/sound.png');
-        this.load.image('healthIcon', 'assets/ui/health.png');
         
         // Загружаем все JSON-конфиги
         this.loadAllConfigs();
@@ -60,29 +59,22 @@ export class MenuScene extends Phaser.Scene {
     }
 
     create() {
+        // Инициализируем AudioManager
+        const audioManager = AudioManager.getInstance();
+        audioManager.init(this);
+        
         // Добавляем фоновое изображение
         this.add.image(960, 540, 'menuBackground').setDisplaySize(1920, 1080);
         
-        // Останавливаем музыку игры, если она играет
-        if (window.backgroundMusic && window.backgroundMusic.isPlaying) {
-            window.backgroundMusic.stop();
-        }
+        // Останавливаем предыдущую музыку через AudioManager
+        audioManager.stopMusic();
         
         // Загружаем все конфиги в ConfigManager
         this.initializeConfigManager();
         
-        // Добавляем и запускаем фоновую музыку для меню (с пониженной громкостью)
-        // Проверяем, играет ли уже музыка меню
-        if (!window.menuMusic || !window.menuMusic.isPlaying) {
-            // Если музыка не играет, создаем и запускаем ее
-            window.menuMusic = this.sound.add('menuMusic', { loop: true, volume: 0.10 });
-            
-            // Проверяем настройки музыки
-            const musicEnabled = localStorage.getItem('musicEnabled') === 'true';
-            if (musicEnabled) {
-                window.menuMusic.play();
-            }
-        }
+        // Добавляем и запускаем фоновую музыку для меню через AudioManager
+        audioManager.addMusic('menuMusic', 'menuMusic', { loop: true, volume: 0.10 });
+        audioManager.playMusic('menuMusic');
         
         // Добавляем заголовок игры с использованием CyberTitle
         const title = new CyberTitle(

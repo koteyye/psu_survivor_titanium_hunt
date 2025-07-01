@@ -48,13 +48,17 @@ export class TraderSkills {
             setFlipY: false
         });
         
-        if (!explosion) return null;
-        
-        // Запускаем анимацию хорошего взрыва
+        if (!explosion) return null;        // Запускаем анимацию хорошего взрыва
         try {
-            explosion.play('good_super_explode');
+            explosion.play('super_explode');
         } catch (error) {
             console.error('Ошибка при запуске анимации хорошего взрыва:', error);
+            // Пытаемся использовать базовую анимацию как запасной вариант
+            try {
+                explosion.play('explosion_simple');
+            } catch (fallbackError) {
+                console.error('Ошибка при запуске запасной анимации:', fallbackError);
+            }
         }
         
         // Добавляем обработчик завершения анимации
@@ -80,13 +84,17 @@ export class TraderSkills {
             setFlipY: false
         });
         
-        if (!explosion) return null;
-        
-        // Запускаем анимацию плохого взрыва
+        if (!explosion) return null;        // Запускаем анимацию плохого взрыва
         try {
-            explosion.play('bad_money_explode');
+            explosion.play('money_explode');
         } catch (error) {
             console.error('Ошибка при запуске анимации плохого взрыва:', error);
+            // Пытаемся использовать базовую анимацию как запасной вариант
+            try {
+                explosion.play('explosion_simple');
+            } catch (fallbackError) {
+                console.error('Ошибка при запуске запасной анимации:', fallbackError);
+            }
         }
         
         // Добавляем обработчик завершения анимации
@@ -98,11 +106,13 @@ export class TraderSkills {
         
         return explosion;
     }
-    
-    // Метод продажи корзины
+      // Метод продажи корзины
     sellBasket() {
+        console.log('sellBasket вызван!'); // Отладка
+        
         // Проверяем кулдаун
         if (this.sellCooldown > 0) {
+            console.log('Кулдаун активен:', this.sellCooldown); // Отладка
             // Создаем текст с сообщением о кулдауне
             this.character.ui.createFloatingText(
                 `КУЛДАУН: ${Math.ceil(this.sellCooldown / 1000)} сек`,
@@ -115,6 +125,7 @@ export class TraderSkills {
         
         // Если корзина пуста, ничего не делаем
         if (this.character.basket <= 0) {
+            console.log('Корзина пуста:', this.character.basket); // Отладка
             // Создаем текст с сообщением о пустой корзине
             this.character.ui.createFloatingText(
                 'КОРЗИНА ПУСТА!',
@@ -124,6 +135,8 @@ export class TraderSkills {
             );
             return;
         }
+        
+        console.log('Проверяем график...'); // Отладка
         
         // Проверяем активность таймера дефолта
         const isDefaultActive = this.character.mechanics.defaultTimer !== null;
@@ -165,11 +178,22 @@ export class TraderSkills {
         // Определяем множитель в зависимости от положения на графике
         let multiplier = 0;
         let healthBonus = 0;
+          // Получаем положение контрольной точки через графический менеджер
+        const graphManager = this.character.ui.graphManager;
+        if (!graphManager || !graphManager.pointsManager || !graphManager.pointsManager.controlPoint) {
+            console.warn('График не инициализирован, продажа невозможна');
+            this.character.ui.createFloatingText(
+                'ГРАФИК НЕ ГОТОВ!',
+                '#ff0000',
+                1000,
+                -50
+            );
+            return;
+        }
         
-        // Получаем положение контрольной точки
-        const controlY = this.character.ui.controlPoint.y;
-        const centerY = this.character.ui.centerY;
-        const levelSpacing = this.character.ui.levelSpacing;
+        const controlY = graphManager.pointsManager.controlPoint.y;
+        const centerY = graphManager.pointsManager.centerY;
+        const levelSpacing = graphManager.zonesManager.levelSpacing;
         
         // Определяем, в какой зоне находится контрольная точка
         if (controlY > centerY) {

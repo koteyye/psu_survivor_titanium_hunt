@@ -13,3 +13,7 @@ Thumbs.db
 
 # Игнорируем логи
 *.log
+
+# Игнорируем файлы планирования и разработки
+AUDIO_FIXES_TODO.md
+PROJECT_REQUIREMENTS.md

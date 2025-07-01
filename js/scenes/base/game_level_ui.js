@@ -1,5 +1,6 @@
 // Функции для создания UI элементов игрового уровня с использованием новых UI классов
 import { CyberButton, CyberBar, CyberTitle } from '../../ui/index.js';
+import { AudioManager } from '../../managers/index.js';
 
 // Создание UI элементов для игрового уровня
 export function createGameUI(scene, options = {}) {
@@ -161,11 +162,9 @@ export function createGameUI(scene, options = {}) {
         60,
         'Меню',
         () => {
-            // Останавливаем музыку перед переходом в меню
-            const backgroundMusic = scene.registry.get('backgroundMusic');
-            if (backgroundMusic && backgroundMusic.isPlaying) {
-                backgroundMusic.stop();
-            }
+            // Останавливаем музыку перед переходом в меню через AudioManager
+            const audioManager = AudioManager.getInstance();
+            audioManager.stopMusic();
             
             // Переходим в меню
             scene.scene.start('MenuScene');
@@ -296,18 +295,32 @@ export function showGameOverUI(scene) {
         return;
     }
     
+    // Создаем полупрозрачный серый фон для Game Over, если его еще нет
+    if (!scene.gameOverBackground) {
+        scene.gameOverBackground = scene.add.rectangle(
+            960, 540, 1920, 1080, 0x000000, 0.7
+        );
+        scene.gameOverBackground.setDepth(1000); // Устанавливаем высокий z-index
+        scene.uiElements.push(scene.gameOverBackground);
+    }
+    
     // Скрываем все другие UI элементы, которые могут мешать
     if (scene.pauseTitle) scene.pauseTitle.setVisible(false);
     if (scene.resumeText) scene.resumeText.setVisible(false);
     if (scene.levelCompletedTitle) scene.levelCompletedTitle.setVisible(false);
     if (scene.nextLevelText) scene.nextLevelText.setVisible(false);
     
-    // Показываем элементы Game Over
+    // Показываем фон Game Over
+    scene.gameOverBackground.setVisible(true);
+    
+    // Показываем элементы Game Over поверх фона
+    scene.gameOverTitle.setDepth(1001);
+    scene.restartText.setDepth(1001);
     scene.gameOverTitle.setVisible(true);
     scene.restartText.setVisible(true);
     
     // Добавляем логирование для отладки
-    console.log('Показаны элементы Game Over');
+    console.log('Показаны элементы Game Over с фоном');
 }
 
 // Показать UI для паузы

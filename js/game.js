@@ -23,10 +23,7 @@ window.health = 100;
 window.gameOver = false;
 window.itemSpawnTime = 0;
 window.explosions = null;
-window.backgroundMusic = null;
-window.menuMusic = null;
-window.explosionSound = null;
-// Звук nyamnyamSound больше не используется
+// Убраны глобальные звуковые переменные - теперь все через AudioManager
 window.gameScene = null;
 window.rKey = null;
 window.escKey = null;

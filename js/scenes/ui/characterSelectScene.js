@@ -1,5 +1,6 @@
 // Сцена выбора персонажа
 import { CyberButton, CyberTitle, CyberCard } from '../../ui/index.js';
+import { AudioManager, ConfigManager } from '../../managers/index.js';
 
 export class CharacterSelectScene extends Phaser.Scene {
     constructor() {
@@ -12,6 +13,9 @@ export class CharacterSelectScene extends Phaser.Scene {
         // Загружаем ресурсы для сцены выбора персонажа
         this.load.image('menuBackground', 'assets/ui/menu_background.png');
         
+        // Загружаем JSON конфигурацию персонажей
+        this.load.json('characters/info', 'assets/configs/characters/info.json');
+        
         // Загружаем изображения персонажей, если они еще не загружены
         if (!this.textures.exists('friender_s')) {
             this.load.image('friender_s', 'assets/characters/friender_s.png');
@@ -22,9 +26,48 @@ export class CharacterSelectScene extends Phaser.Scene {
         if (!this.textures.exists('zummer')) {
             this.load.image('zummer', 'assets/characters/zummer.png');
         }
+        
+        // Загружаем звуки выбора персонажей
+        const cacheBuster = Date.now();
+        
+        // Загружаем звуки для каждого персонажа (пока что хардкодно, так как JSON еще не загружен)
+        ['friender_s', 'trader', 'zummer'].forEach(characterId => {
+            const basePath = `assets/sounds/gameplay/replicas/${characterId}`;
+            this.load.audio(`gameplay/replicas/${characterId}/select`, `${basePath}/select.mp3?v=${cacheBuster}`);
+        });
     }
 
     create() {
+        // Инициализируем AudioManager
+        const audioManager = AudioManager.getInstance();
+        audioManager.init(this);
+        
+        // Инициализируем ConfigManager и загружаем данные персонажей
+        const configManager = ConfigManager.getInstance();
+        configManager.loadFromCache(this, 'characters/info', 'characters/info');
+        
+        // Получаем данные персонажей из JSON
+        const characterInfo = configManager.getConfig('characters/info');
+        if (!characterInfo) {
+            console.error('Не удалось загрузить конфигурацию персонажей');
+            return;
+        }
+        
+        // Преобразуем данные из JSON в массив персонажей
+        this.characters = Object.values(characterInfo).map(char => ({
+            id: char.id,
+            name: char.name,
+            image: char.texture,
+            description: char.fullDescription || char.shortDescription,
+            category: char.category,
+            emoji: char.emoji
+        }));
+        
+        // Добавляем звуки выбора персонажей в AudioManager
+        this.characters.forEach(character => {
+            audioManager.addSound(`select_${character.id}`, `gameplay/replicas/${character.id}/select`, { volume: 0.8 });
+        });
+        
         // Создаем темно-синий фон в киберпанк-стиле
         this.add.rectangle(960, 540, 1920, 1080, 0x0a0f1c).setAlpha(0.9);
         
@@ -47,27 +90,6 @@ export class CharacterSelectScene extends Phaser.Scene {
         );
         this.uiElements.push(title);
         
-        // Данные о персонажах
-        this.characters = [
-            {
-                id: 'friender_s',
-                name: 'Товарищ С.',
-                image: 'friender_s',
-                description: 'Мрачный революционер мира блоков питания. Угрюмый, вечно недовольный, он видит в каждом PSU либо предателя, либо недостойного кандидата в «Великий Единый Блок». Его цель – очистить индустрию от ненадёжных, перегревающихся и шумных моделей, объединив всех под железной рукой эффективного энергоснабжения.\n\nСлоган: «Комиссар Качественного Напряжения – Борец с Конденсаторной Контрреволюцией – Диктатор Стабильных Ватт»\n\nОн не улыбается, не шутит и терпеть не может «буржуазные» блоки с RGB-подсветкой. Если ваш PSU не прошёл проверку Товарища С – готовьтесь к «перевоспитанию» молотком и паяльником.'
-            },
-            {
-                id: 'trader',
-                name: 'Кролик-Шнырь Облигац',
-                image: 'trader',
-                description: 'Аферист мира блоков питания. Хитрый, жадный и абсолютно беспринципный, он скупает любые PSU – хоть сгоревшие, хоть золотые – лишь бы на них можно было заработать. Его не волнует качество, энергоэффективность или стабильность – только курс, маржа и момент, когда можно сорвать куш.\n\nСлоган: «Спекулянт Ваттами – Акула Вторичного Рынка – Король Нагретых Сделок»\n\nОн не разбирает, не тестирует и не чинит – только сбывает по завышенной цене в самый "горячий" момент. Если рынок рухнет – он уже давно продал всё и сбежал с мешком золотых конденсаторов.'
-            },
-            {
-                id: 'zummer',
-                name: 'Вован - Алиэксперсс',
-                image: 'zummer',
-                description: 'Король бюджетных сборок и мастер спорных решений. Уверен, что все топовые блоки питания – заговор маркетологов, а настоящий кайф – это запихать в систему безымянный PSU за 500 рублей и гордо называть это «оптимизацией бюджета». Даже если блок трещит, воняет паленой пластмассой и вот-вот спалит квартиру, Вован будет доказывать, что «все норм, просто ты не умеешь их готовить».\n\nСлоган: «Гуру Китайских Ватт – Критик Дорогих Пылесосов – Герой Экономии (и Пожаров)»\n\nОн свято верит, что три дешёвых блока, соединённых скотчем, надёжнее одного Corsair, а все негативные отзывы – происки конкурентов. Его принцип: «Если не взорвалось сразу – значит, прошло QC».'
-            }
-        ];
         
         // Создаем карточки персонажей
         this.characterCards = [];
@@ -98,9 +120,9 @@ export class CharacterSelectScene extends Phaser.Scene {
                     // Обновляем описание
                     this.updateCharacterDescription(character);
                     
-                    // Воспроизводим звук выбора, если он есть
-                    if (character.id && this.sound.get(`select_${character.id}`)) {
-                        this.sound.play(`select_${character.id}`);
+                    // Воспроизводим звук выбора через AudioManager
+                    if (character.id) {
+                        audioManager.playSound(`select_${character.id}`);
                     }
                 },
                 {

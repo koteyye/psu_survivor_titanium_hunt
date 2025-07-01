@@ -16,6 +16,10 @@ export class BaseCharacter {
         this.sprite = scene.physics.add.sprite(x, y, texture);
         this.sprite.setCollideWorldBounds(true);
         
+        // Проверяем создание физического тела
+        console.log(`Спрайт персонажа создан: ${texture}`);
+        console.log('Физическое тело спрайта:', this.sprite.body);
+        
         // Получаем размеры из конфига
         const displaySize = this.configManager.getValue('core', 'player.displaySize', { width: 200, height: 300 });
         this.sprite.setDisplaySize(displaySize.width, displaySize.height);
@@ -108,15 +112,15 @@ export class BaseCharacter {
     initSounds() {
         const characterId = this.getCharacterId();
         
-        // Загружаем звуки, если они еще не загружены
+        // Загружаем звуки через AudioManager
         try {
-            this.sounds.select = this.scene.sound.add(`gameplay/replicas/${characterId}/select`, { volume: 0.8 });
-            this.sounds.bad_psu_1 = this.scene.sound.add(`gameplay/replicas/${characterId}/bad_psu_1`, { volume: 0.8 });
-            this.sounds.bad_psu_2 = this.scene.sound.add(`gameplay/replicas/${characterId}/bad_psu_2`, { volume: 0.8 });
-            this.sounds.super_psu_1 = this.scene.sound.add(`gameplay/replicas/${characterId}/super_psu_1`, { volume: 0.8 });
-            this.sounds.super_psu_2 = this.scene.sound.add(`gameplay/replicas/${characterId}/super_psu_2`, { volume: 0.8 });
-            this.sounds.dead = this.scene.sound.add(`gameplay/replicas/${characterId}/dead`, { volume: 0.8 });
-            console.log(`Звуки для персонажа ${characterId} успешно загружены`);
+            this.audioManager.addSound(`${characterId}_select`, `gameplay/replicas/${characterId}/select`, { volume: 0.8 });
+            this.audioManager.addSound(`${characterId}_bad_psu_1`, `gameplay/replicas/${characterId}/bad_psu_1`, { volume: 0.8 });
+            this.audioManager.addSound(`${characterId}_bad_psu_2`, `gameplay/replicas/${characterId}/bad_psu_2`, { volume: 0.8 });
+            this.audioManager.addSound(`${characterId}_super_psu_1`, `gameplay/replicas/${characterId}/super_psu_1`, { volume: 0.8 });
+            this.audioManager.addSound(`${characterId}_super_psu_2`, `gameplay/replicas/${characterId}/super_psu_2`, { volume: 0.8 });
+            this.audioManager.addSound(`${characterId}_dead`, `gameplay/replicas/${characterId}/dead`, { volume: 0.8 });
+            console.log(`Звуки для персонажа ${characterId} успешно загружены через AudioManager`);
         } catch (error) {
             console.error(`Ошибка при загрузке звуков для персонажа ${characterId}:`, error);
         }
@@ -129,16 +133,18 @@ export class BaseCharacter {
     
     // Воспроизведение звука выбора персонажа
     playSelectSound() {
-        this.playSound(this.sounds.select);
+        const characterId = this.getCharacterId();
+        this.audioManager.playSound(`${characterId}_select`);
     }
     
     // Воспроизведение звука при сборе плохого блока питания
     playBadPsuSound() {
         // Воспроизводим с шансом 20%
         if (Math.random() < 0.2) {
+            const characterId = this.getCharacterId();
             // Случайно выбираем между двумя репликами
-            const sound = Math.random() < 0.5 ? this.sounds.bad_psu_1 : this.sounds.bad_psu_2;
-            this.playSound(sound);
+            const soundKey = Math.random() < 0.5 ? `${characterId}_bad_psu_1` : `${characterId}_bad_psu_2`;
+            this.audioManager.playSound(soundKey);
         }
     }
     
@@ -146,29 +152,17 @@ export class BaseCharacter {
     playSuperPsuSound() {
         // Воспроизводим с шансом 70%
         if (Math.random() < 0.7) {
+            const characterId = this.getCharacterId();
             // Случайно выбираем между двумя репликами
-            const sound = Math.random() < 0.5 ? this.sounds.super_psu_1 : this.sounds.super_psu_2;
-            this.playSound(sound);
+            const soundKey = Math.random() < 0.5 ? `${characterId}_super_psu_1` : `${characterId}_super_psu_2`;
+            this.audioManager.playSound(soundKey);
         }
     }
     
     // Воспроизведение звука при смерти
     playDeadSound() {
-        this.playSound(this.sounds.dead);
-    }
-    
-    // Общий метод воспроизведения звука с проверкой настроек
-    playSound(sound) {
-        if (!sound) return;
-        
-        if (this.audioManager.soundEnabled) {
-            try {
-                sound.play();
-            } catch (error) {
-                console.error('Ошибка воспроизведения звука:', error);
-                console.error('Звук:', sound);
-            }
-        }
+        const characterId = this.getCharacterId();
+        this.audioManager.playSound(`${characterId}_dead`);
     }
     
     // Обработка сбора хорошего предмета
@@ -309,6 +303,8 @@ export class BaseCharacter {
     
     // Создание эффекта взрыва
     createExplosionEffect(x, y) {
+        console.log('Создаем эффект взрыва в позиции:', x, y);
+        
         // Получаем пул взрывов
         const explosion = this.objectPoolManager.get('explosions', x, y, {
             setDisplaySize: [600, 600],
@@ -316,17 +312,32 @@ export class BaseCharacter {
             setFlipY: false
         });
         
-        if (!explosion) return null;
+        if (!explosion) {
+            console.error('Не удалось получить объект взрыва из пула!');
+            return null;
+        }
+        
+        console.log('Объект взрыва получен:', explosion);
+        
+        // Проверяем доступность анимации
+        if (!this.scene.anims.exists('explode')) {
+            console.error('Анимация explode не найдена!');
+            return explosion;
+        }
+        
+        console.log('Анимация explode найдена, запускаем...');
         
         // Запускаем анимацию
         try {
             explosion.play('explode');
+            console.log('Анимация explode запущена');
         } catch (error) {
             console.error('Ошибка при запуске анимации взрыва:', error);
         }
         
         // Добавляем обработчик завершения анимации
         explosion.once('animationcomplete', () => {
+            console.log('Анимация взрыва завершена');
             if (explosion && explosion.active) {
                 this.objectPoolManager.release('explosions', explosion);
             }

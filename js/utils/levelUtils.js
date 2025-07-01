@@ -2,6 +2,7 @@
 import { levelManager } from './levelManager.js';
 import { progressManager, ACHIEVEMENTS } from './progressManager.js';
 import { CyberTitle } from '../ui/index.js';
+import { ObjectPoolManager } from '../managers/index.js';
 
 // Функция для инициализации уровня
 export function initializeLevel(scene, levelId = 1) {
@@ -175,20 +176,30 @@ export function spawnLevelItems(scene, levelConfig) {
     const x = Phaser.Math.Between(100, 1820);
     const random = Math.random();
     
+    // Получаем Object Pool Manager
+    const objectPoolManager = ObjectPoolManager.getInstance();
+    
     let item;
+    let itemType;
     
     if (random < levelConfig.badItemChance) {
         // Плохой блок питания
-        const badItems = scene.registry.get('badItems');
-        item = badItems.create(x, 0, 'badItem');
+        item = objectPoolManager.get('badItems', x, 0);
+        itemType = 'bad';
     } else if (random < levelConfig.badItemChance + levelConfig.goodItemChance) {
         // Хороший блок питания
-        const goodItems = scene.registry.get('goodItems');
-        item = goodItems.create(x, 0, 'goodItem');
+        item = objectPoolManager.get('goodItems', x, 0);
+        itemType = 'good';
     } else {
         // Очень хороший блок питания
-        const veryGoodItems = scene.registry.get('veryGoodItems');
-        item = veryGoodItems.create(x, 0, 'veryGoodItem');
+        item = objectPoolManager.get('veryGoodItems', x, 0);
+        itemType = 'veryGood';
+    }
+    
+    // Если не удалось получить предмет из пула, выходим
+    if (!item) {
+        console.warn('Не удалось получить предмет из пула');
+        return null;
     }
     
     // Настраиваем предмет

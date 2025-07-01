@@ -66,28 +66,43 @@ export class GraphTooltipManager extends BaseUIElement {
     addTooltipsToGraphElements() {
         // Получаем элементы графика
         const graphManager = this.character.ui.graphManager;
-        if (!graphManager) return;
-        
-        // Добавляем подсказки к зонам графика
-        const zones = graphManager.zonesManager.getZones();
-        if (zones) {
-            // Красная зона
-            this.addTooltipToElement(
-                zones.redZone, 
-                this.uiConfig.graph.tooltipTexts.redZone
-            );
+        if (!graphManager) return;        // Добавляем подсказки к зонам графика
+        const zones = graphManager.zonesManager.getAllZones();
+        if (zones && zones.length > 0) {
+            // Ищем зоны по типу
+            const lossZone = zones.find(zone => zone.type === 'loss');
+            const x1Zone = zones.find(zone => zone.type === 'x1');
+            const x2Zone = zones.find(zone => zone.type === 'x2');
+            const x3Zone = zones.find(zone => zone.type === 'x3');
             
-            // Желтая зона
-            this.addTooltipToElement(
-                zones.yellowZone, 
-                this.uiConfig.graph.tooltipTexts.yellowZone
-            );
+            // Добавляем подсказки если зоны найдены
+            if (lossZone) {
+                this.addTooltipToElement(
+                    lossZone, 
+                    this.uiConfig.graph.tooltipTexts.redZone || "Зона убытков"
+                );
+            }
             
-            // Зеленая зона
-            this.addTooltipToElement(
-                zones.greenZone, 
-                this.uiConfig.graph.tooltipTexts.greenZone
-            );
+            if (x1Zone) {
+                this.addTooltipToElement(
+                    x1Zone, 
+                    this.uiConfig.graph.tooltipTexts.yellowZone || "Зона x1"
+                );
+            }
+            
+            if (x2Zone) {
+                this.addTooltipToElement(
+                    x2Zone, 
+                    this.uiConfig.graph.tooltipTexts.greenZone || "Зона x2"
+                );
+            }
+            
+            if (x3Zone) {
+                this.addTooltipToElement(
+                    x3Zone, 
+                    this.uiConfig.graph.tooltipTexts.greenZone || "Зона x3"
+                );
+            }
         }
         
         // Добавляем подсказку к контрольной точке

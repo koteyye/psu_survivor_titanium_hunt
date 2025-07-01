@@ -2,20 +2,36 @@
 import { BaseCharacter } from './base_character.js';
 import { updateGameUI, showGameOverUI } from '../../scenes/base/game_level_ui.js';
 import { CyberBar } from '../../ui/index.js';
+import { ConfigManager } from '../../managers/config_manager.js';
 
 export class ZummerCharacter extends BaseCharacter {
     constructor(scene, x, y) {
         super(scene, x, y, 'zummer');
         
-        // Особые характеристики Вована
-        this.damageReduction = 5;  // Получает меньше урона
+        // Получаем конфигурацию персонажа из JSON
+        const configManager = ConfigManager.getInstance();
+        const characterInfo = configManager.getConfig('characters/info');
+        const zummerConfig = characterInfo ? characterInfo.zummer : null;
+        
+        if (zummerConfig && zummerConfig.mechanics) {
+            // Используем значения из конфигурации
+            this.damageReduction = zummerConfig.mechanics.damageReduction || 5;
+            this.badItemExplosionChance = zummerConfig.mechanics.badItemExplosionChance || 0.05;
+            this.canHeal = zummerConfig.mechanics.canHeal !== undefined ? zummerConfig.mechanics.canHeal : false;
+        } else {
+            // Fallback значения на случай отсутствия конфигурации
+            console.warn('Конфигурация Zummer не найдена, используются значения по умолчанию');
+            this.damageReduction = 5;  // Получает меньше урона
+            this.badItemExplosionChance = 0.05; // Шанс взрыва плохого блока (5%)
+            this.canHeal = false; // Запрет на восстановление здоровья
+        }
+        
+        // Особые характеристики Вована (не зависят от конфигурации)
         this.rageMode = false;     // Режим ярости
         this.rageMeter = 0;        // Счетчик ярости
         this.rageBar = null;       // Полоса ярости
         this.rageDecayTimer = null; // Таймер для снижения ярости
         this.rageDamageTimer = null; // Таймер для получения урона в режиме ярости
-        this.badItemExplosionChance = 0.05; // Шанс взрыва плохого блока (5%)
-        this.canHeal = false; // Запрет на восстановление здоровья
         
         // Проверяем, загружена ли иконка ярости
         if (this.scene.textures.exists('rageIcon')) {
@@ -30,7 +46,7 @@ export class ZummerCharacter extends BaseCharacter {
     }
     
     getCharacterId() {
-        return 'zoomer';
+        return 'zummer';
     }
     
     // Создание полосы ярости
@@ -205,29 +221,28 @@ export class ZummerCharacter extends BaseCharacter {
     }
     
     // Переопределяем метод сбора хорошего предмета
-    collectGoodItem(item) {
-        if (this.rageMode) {
+    collectGoodItem(item) {        if (this.rageMode) {
             // В режиме ярости получаем урон и не получаем очки
             item.disableBody(true, true);
-            window.health -= 10;
+            
+            // Получаем текущее здоровье из Registry
+            let health = this.scene.registry.get('health') || 100;
+            health = Math.max(0, health - 10);
+            this.scene.registry.set('health', health);
             
             // Обновляем UI здоровья
-            if (window.gameScene) {
-                updateGameUI(window.gameScene);
-            }
+            updateGameUI(this.scene);
             
             // Проверяем, не закончилась ли игра
-            if (window.health <= 0) {
-                window.health = 0;
-                window.gameOver = true;
+            if (health <= 0) {
+                this.scene.registry.set('health', 0);
+                this.scene.registry.set('gameOver', true);
                 
                 // Проигрываем реплику смерти
                 this.playDeadSound();
                 
                 // Показываем UI окончания игры
-                if (window.gameScene) {
-                    showGameOverUI(window.gameScene);
-                }
+                showGameOverUI(this.scene);
                 
                 // Останавливаем игру
                 this.scene.physics.pause();
@@ -252,29 +267,28 @@ export class ZummerCharacter extends BaseCharacter {
     }
     
     // Переопределяем метод сбора очень хорошего предмета
-    collectVeryGoodItem(item) {
-        if (this.rageMode) {
+    collectVeryGoodItem(item) {        if (this.rageMode) {
             // В режиме ярости получаем урон и не получаем очки
             item.disableBody(true, true);
-            window.health -= 5;
+            
+            // Получаем текущее здоровье из Registry
+            let health = this.scene.registry.get('health') || 100;
+            health = Math.max(0, health - 5);
+            this.scene.registry.set('health', health);
             
             // Обновляем UI здоровья
-            if (window.gameScene) {
-                updateGameUI(window.gameScene);
-            }
+            updateGameUI(this.scene);
             
             // Проверяем, не закончилась ли игра
-            if (window.health <= 0) {
-                window.health = 0;
-                window.gameOver = true;
+            if (health <= 0) {
+                this.scene.registry.set('health', 0);
+                this.scene.registry.set('gameOver', true);
                 
                 // Проигрываем реплику смерти
                 this.playDeadSound();
                 
                 // Показываем UI окончания игры
-                if (window.gameScene) {
-                    showGameOverUI(window.gameScene);
-                }
+                showGameOverUI(this.scene);
                 
                 // Останавливаем игру
                 this.scene.physics.pause();
@@ -308,27 +322,22 @@ export class ZummerCharacter extends BaseCharacter {
         
         // Отключаем физическое тело предмета
         item.disableBody(true, true);
-        
-        if (willExplode) {
+          if (willExplode) {
             // Если блок взорвался, создаем анимацию взрыва
-            const explosion = window.explosions.create(item.x, item.y, 'explosion');
+            const explosions = this.scene.registry.get('explosions');
+            const explosion = explosions.create(item.x, item.y, 'explosion');
             explosion.setDisplaySize(600, 600);
             explosion.setOrigin(0.5, 0.5);
             explosion.setFlipY(false);
             explosion.anims.play('explode');
             
-            // Проигрываем звук взрыва
-            const soundEnabled = localStorage.getItem('soundEnabled') === 'true';
-            if (soundEnabled && window.explosionSound) {
-                try {
-                    window.explosionSound.play();
-                } catch (error) {
-                    console.error('Ошибка при воспроизведении звука взрыва:', error);
-                }
-            }
+            // Проигрываем звук взрыва через AudioManager
+            this.audioManager.playSound('explosionSound');
             
             // Наносим 20 урона
-            window.health -= 20;
+            let health = this.scene.registry.get('health') || 100;
+            health = Math.max(0, health - 20);
+            this.scene.registry.set('health', health);
             
             // Удаляем взрыв после окончания анимации
             explosion.on('animationcomplete', function() {
@@ -336,39 +345,40 @@ export class ZummerCharacter extends BaseCharacter {
             });
         } else if (this.rageMode) {
             // В режиме ярости получаем урон и не получаем очки
-            window.health -= 20;
+            let health = this.scene.registry.get('health') || 100;
+            health = Math.max(0, health - 20);
+            this.scene.registry.set('health', health);
         } else {
             // В обычном режиме получаем очки и увеличиваем ярость
-            window.score += 5;
+            let score = this.scene.registry.get('score') || 0;
+            score += 5;
+            this.scene.registry.set('score', score);
             
             // Обновляем UI
-            if (window.scoreText) {
-                window.scoreText.setText('Очки: ' + window.score);
+            const scoreText = this.scene.registry.get('scoreText');
+            if (scoreText) {
+                scoreText.setText('Очки: ' + score);
             }
             
             this.increaseRage(30);
         }
-        
-        // Проигрываем реплику персонажа с шансом 20%
+          // Проигрываем реплику персонажа с шансом 20%
         this.playBadPsuSound();
         
         // Обновляем UI здоровья через функцию updateGameUI
-        if (window.gameScene) {
-            updateGameUI(window.gameScene);
-        }
+        updateGameUI(this.scene);
         
         // Проверяем, не закончилась ли игра
-        if (window.health <= 0) {
-            window.health = 0;
-            window.gameOver = true;
+        const currentHealth = this.scene.registry.get('health') || 100;
+        if (currentHealth <= 0) {
+            this.scene.registry.set('health', 0);
+            this.scene.registry.set('gameOver', true);
             
             // Проигрываем реплику смерти
             this.playDeadSound();
             
             // Показываем UI окончания игры
-            if (window.gameScene) {
-                showGameOverUI(window.gameScene);
-            }
+            showGameOverUI(this.scene);
             
             // Останавливаем игру
             this.scene.physics.pause();

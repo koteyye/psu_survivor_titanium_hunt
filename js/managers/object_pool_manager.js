@@ -16,9 +16,7 @@ export class ObjectPoolManager {
             ObjectPoolManager.instance = new ObjectPoolManager();
         }
         return ObjectPoolManager.instance;
-    }
-    
-    /**
+    }    /**
      * Создание нового пула объектов
      * @param {string} poolName - Имя пула
      * @param {Phaser.Scene} scene - Сцена
@@ -59,9 +57,7 @@ export class ObjectPoolManager {
         this.pools[poolName] = pool;
         
         return pool;
-    }
-    
-    /**
+    }/**
      * Получение объекта из пула
      * @param {string} poolName - Имя пула
      * @param {number} x - Координата X
@@ -220,8 +216,15 @@ export class ObjectPoolManager {
      * Уничтожение всех пулов
      */
     destroyAllPools() {
-        Object.keys(this.pools).forEach(poolName => {
+        const poolNames = Object.keys(this.pools);
+        console.log('Уничтожаем все пулы:', poolNames);
+        
+        poolNames.forEach(poolName => {
             this.destroyPool(poolName);
         });
+        
+        // Очищаем объект пулов
+        this.pools = {};
+        console.log('Все пулы уничтожены');
     }
 }

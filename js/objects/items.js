@@ -31,9 +31,8 @@ function initItemPools(scene) {
     objectPoolManager.createPool('veryGoodItems', scene, 'veryGoodItem', (item) => {
         setupItem(item, 'veryGood');
     }, 10);
-    
-    // Создаем пул взрывов
-    objectPoolManager.createPool('explosions', scene, 'explosion', (explosion) => {
+      // Создаем пул взрывов (используем текстуру badItem как базовую, потом меняем через setTexture)
+    objectPoolManager.createPool('explosions', scene, 'badItem', (explosion) => {
         explosion.setDisplaySize(600, 600);
         explosion.setOrigin(0.5, 0.5);
         explosion.setFlipY(false);
@@ -159,13 +158,25 @@ function setupItemCollisions(scene, player, walls) {
     // Получаем менеджеры
     const objectPoolManager = ObjectPoolManager.getInstance();
     
+    console.log('Настраиваем коллизии предметов...');
+    console.log('Player для коллизий:', player);
+    console.log('Player тип:', typeof player);
+    console.log('Player конструктор:', player.constructor.name);
+    
     // Получаем пулы предметов
     const goodItems = objectPoolManager.getPool('goodItems');
     const badItems = objectPoolManager.getPool('badItems');
     const veryGoodItems = objectPoolManager.getPool('veryGoodItems');
     
+    console.log('Пулы:', { goodItems, badItems, veryGoodItems });
+    
     // Если пулы не созданы, выходим
-    if (!goodItems || !badItems || !veryGoodItems) return;
+    if (!goodItems || !badItems || !veryGoodItems) {
+        console.error('Не все пулы созданы!');
+        return;
+    }
+    
+    console.log('Настраиваем коллизии со стенами...');
     
     // Настраиваем коллизии со стенами
     walls.forEach(wall => {
@@ -177,24 +188,39 @@ function setupItemCollisions(scene, player, walls) {
     // Получаем персонажа из Registry
     const gameCharacter = scene.registry.get('gameCharacter');
     
+    console.log('Настраиваем коллизии с игроком...', { player, gameCharacter });
+    
+    // Проверяем, что player - это правильный спрайт физики Phaser
+    if (!player.body) {
+        console.error('ОШИБКА: Player не имеет физического тела!', player);
+        return;
+    }
+    
+    console.log('Player имеет физическое тело:', player.body);
+    
     // Настраиваем перекрытия с игроком
     scene.physics.add.overlap(player, goodItems, (player, item) => {
+        console.log('Коллизия с хорошим предметом');
         if (gameCharacter && gameCharacter.collectGoodItem) {
             gameCharacter.collectGoodItem(item);
         }
     }, null, scene);
     
     scene.physics.add.overlap(player, badItems, (player, item) => {
+        console.log('Коллизия с плохим предметом');
         if (gameCharacter && gameCharacter.hitBadItem) {
             gameCharacter.hitBadItem(item);
         }
     }, null, scene);
     
     scene.physics.add.overlap(player, veryGoodItems, (player, item) => {
+        console.log('Коллизия с супер предметом');
         if (gameCharacter && gameCharacter.collectVeryGoodItem) {
             gameCharacter.collectVeryGoodItem(item);
         }
     }, null, scene);
+    
+    console.log('Коллизии настроены успешно!');
 }
 
 /**

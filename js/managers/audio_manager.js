@@ -179,61 +179,125 @@ export class AudioManager {
     }
     
     /**
-     * Включение/выключение музыки
-     * @param {boolean} enabled - Включена ли музыка
+     * Пауза текущей музыки
      */
-    setMusicEnabled(enabled) {
-        this.musicEnabled = enabled;
-        
-        // Если музыка выключена, останавливаем текущую музыку
-        if (!enabled && this.currentMusic) {
-            this.stopMusic();
-        } else if (enabled && this.currentMusic) {
-            // Если музыка включена, возобновляем текущую музыку
-            this.playMusic(this.currentMusic, false);
+    pauseMusic() {
+        if (this.currentMusic && this.music[this.currentMusic]) {
+            try {
+                this.music[this.currentMusic].pause();
+            } catch (error) {
+                console.error(`Ошибка при постановке на паузу музыки ${this.currentMusic}:`, error);
+            }
         }
-        
-        // Сохраняем настройки
-        this.saveSettings();
     }
     
     /**
-     * Включение/выключение звуков
-     * @param {boolean} enabled - Включены ли звуки
+     * Возобновление текущей музыки
      */
-    setSoundEnabled(enabled) {
-        this.soundEnabled = enabled;
-        
-        // Сохраняем настройки
-        this.saveSettings();
+    resumeMusic() {
+        if (this.currentMusic && this.music[this.currentMusic] && this.musicEnabled) {
+            try {
+                this.music[this.currentMusic].resume();
+            } catch (error) {
+                console.error(`Ошибка при возобновлении музыки ${this.currentMusic}:`, error);
+            }
+        }
     }
     
     /**
-     * Установка громкости музыки
-     * @param {number} volume - Громкость (0-1)
+     * Получение текущей играющей музыки
+     * @returns {string|null} Ключ текущей музыки
      */
-    setMusicVolume(volume) {
-        this.musicVolume = Math.max(0, Math.min(1, volume));
-        
-        // Обновляем громкость текущей музыки
-        Object.values(this.music).forEach(music => {
-            music.setVolume(this.musicVolume);
-        });
+    getCurrentMusic() {
+        return this.currentMusic;
     }
     
     /**
-     * Установка громкости звуков
-     * @param {number} volume - Громкость (0-1)
+     * Получение громкости музыки
+     * @returns {number} Громкость музыки (0-1)
      */
-    setSoundVolume(volume) {
-        this.soundVolume = Math.max(0, Math.min(1, volume));
-        
-        // Обновляем громкость всех звуков
-        Object.values(this.sounds).forEach(sound => {
-            sound.setVolume(this.soundVolume);
-        });
+    getMusicVolume() {
+        return this.musicVolume;
     }
     
+    /**
+     * Получение громкости звуков
+     * @returns {number} Громкость звуков (0-1)
+     */
+    getSoundVolume() {
+        return this.soundVolume;
+    }
+    
+    /**
+     * Получение состояния музыки
+     * @returns {boolean} Включена ли музыка
+     */
+    isMusicEnabled() {
+        return this.musicEnabled;
+    }
+    
+    /**
+     * Получение состояния звуков
+     * @returns {boolean} Включены ли звуки
+     */
+    isSoundEnabled() {
+        return this.soundEnabled;
+    }
+    
+    /**
+     * Плавное появление музыки
+     * @param {string} key - Ключ музыки
+     * @param {number} duration - Длительность появления в мс
+     */
+    fadeInMusic(key, duration = 1000) {
+        if (!this.musicEnabled) return;
+        
+        const music = this.music[key];
+        if (music) {
+            try {
+                music.setVolume(0);
+                music.play();
+                this.currentMusic = key;
+                
+                // Плавно увеличиваем громкость
+                this.scene.tweens.add({
+                    targets: music,
+                    volume: this.musicVolume,
+                    duration: duration,
+                    ease: 'Linear'
+                });
+            } catch (error) {
+                console.error(`Ошибка при плавном появлении музыки ${key}:`, error);
+            }
+        }
+    }
+    
+    /**
+     * Плавное исчезание музыки
+     * @param {number} duration - Длительность исчезания в мс
+     */
+    fadeOutMusic(duration = 1000) {
+        if (this.currentMusic && this.music[this.currentMusic]) {
+            const music = this.music[this.currentMusic];
+            
+            try {
+                // Плавно уменьшаем громкость
+                this.scene.tweens.add({
+                    targets: music,
+                    volume: 0,
+                    duration: duration,
+                    ease: 'Linear',
+                    onComplete: () => {
+                        music.stop();
+                        this.currentMusic = null;
+                    }
+                });
+            } catch (error) {
+                console.error(`Ошибка при плавном исчезании музыки:`, error);
+            }
+        }
+    }
+
     /**
      * Очистка ресурсов при уничтожении сцены
      */

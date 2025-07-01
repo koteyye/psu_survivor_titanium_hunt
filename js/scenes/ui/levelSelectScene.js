@@ -1,6 +1,7 @@
 // Сцена выбора уровня
 import { levelManager } from '../../utils/levelManager.js';
 import { CyberButton, CyberTitle } from '../../ui/index.js';
+import { AudioManager } from '../../managers/index.js';
 
 export class LevelSelectScene extends Phaser.Scene {
     constructor() {
@@ -13,16 +14,18 @@ export class LevelSelectScene extends Phaser.Scene {
     }
 
     create() {
+        // Инициализируем AudioManager
+        const audioManager = AudioManager.getInstance();
+        audioManager.init(this);
+        
         // Создаем темно-синий фон в киберпанк-стиле
         this.add.rectangle(960, 540, 1920, 1080, 0x0a0f1c).setAlpha(0.9);
         
         // Добавляем фоновое изображение с пониженной прозрачностью
         this.add.image(960, 540, 'menuBackground').setDisplaySize(1920, 1080).setAlpha(0.3);
         
-        // Останавливаем музыку игры, если она играет
-        if (window.backgroundMusic && window.backgroundMusic.isPlaying) {
-            window.backgroundMusic.stop();
-        }
+        // Останавливаем игровую музыку через AudioManager
+        audioManager.stopMusic();
         
         // Музыка продолжает играть с предыдущего экрана
         
@@ -62,10 +65,8 @@ export class LevelSelectScene extends Phaser.Scene {
                     y,
                     level.name,
                     () => {
-                        // Останавливаем музыку меню перед переходом в игру
-                        if (window.menuMusic && window.menuMusic.isPlaying) {
-                            window.menuMusic.stop();
-                        }
+                        // Останавливаем музыку меню перед переходом в игру через AudioManager
+                        audioManager.stopMusic();
                         
                         // Получаем выбранного персонажа
                         const selectedCharacter = localStorage.getItem('selectedCharacter') || 'friender_s';

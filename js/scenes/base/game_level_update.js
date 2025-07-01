@@ -82,6 +82,9 @@ function handleGameOver(scene) {
         if (scene.restartText) {
             scene.restartText.setVisible(false);
         }
+        if (scene.gameOverBackground) {
+            scene.gameOverBackground.setVisible(false);
+        }
         
         // Перезапускаем игру
         restartGame(scene);
