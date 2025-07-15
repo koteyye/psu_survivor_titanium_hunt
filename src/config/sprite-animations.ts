@@ -117,6 +117,64 @@ export const EXPLOSION_ANIMATIONS: Record<string, AnimationConfig> = {
   }
 };
 
+// Конфигурация анимаций персонажей
+export const CHARACTER_ANIMATIONS: Record<string, AnimationConfig> = {
+  // Анимации friender
+  FRIENDER_IDLE: {
+    key: 'friender_idle',
+    atlas: 'friender_stay',
+    frames: ['friender_stay.png'], // Статичный кадр
+    frameRate: 1,
+    repeat: -1
+  },
+
+  FRIENDER_RUN: {
+    key: 'friender_run',
+    atlas: 'friender_run',
+    frames: [
+      'frame_002.png',
+      'frame_003.png',
+      'frame_004.png',
+      'frame_005.png',
+      'frame_006.png',
+      'frame_007.png',
+      'frame_008.png',
+      'frame_009.png',
+      'frame_010.png',
+      'frame_011.png',
+      'frame_012.png'
+    ],
+    frameRate: 12,
+    repeat: -1
+  },
+
+  FRIENDER_DEAD: {
+    key: 'friender_dead',
+    atlas: 'friender_dead',
+    frames: [
+      'frame_000.png',
+      'frame_002.png',
+      'frame_003.png',
+      'frame_004.png',
+      'frame_05.png',
+      'frame_006.png',
+      'frame_007.png',
+      'frame_008.png',
+      'frame_009.png',
+      'frame_010.png',
+      'frame_011.png',
+      'frame_012.png',
+      'frame_013.png',
+      'frame_014.png',
+      'frame_015.png'
+    ],
+    frameRate: 8,
+    repeat: 0,
+    hideOnComplete: true,
+    duration: 2000
+  }
+};
+
 // Компоненты анимаций для использования в сценах
 export const SPRITE_ANIMATION_COMPONENTS: Record<string, SpriteAnimationComponent> = {
   // Компонент для взрывов плохих объектов
@@ -142,6 +200,17 @@ export const SPRITE_ANIMATION_COMPONENTS: Record<string, SpriteAnimationComponen
   ALL_EXPLOSIONS: {
     animations: Object.values(EXPLOSION_ANIMATIONS),
     defaultAnimation: 'good_explosion'
+  },
+
+  // Компонент для анимаций friender
+  FRIENDER_ANIMATIONS: {
+    animations: [
+      CHARACTER_ANIMATIONS.FRIENDER_IDLE,
+      CHARACTER_ANIMATIONS.FRIENDER_RUN,
+      CHARACTER_ANIMATIONS.FRIENDER_DEAD
+    ],
+    defaultAnimation: 'friender_idle',
+    autoPlay: true
   }
 };
 
@@ -234,14 +303,21 @@ export class SpriteAnimationManager {
 
 // Константы для удобного доступа к ключам анимаций
 export const ANIMATION_KEYS = {
+  // Взрывы
   BAD_EXPLOSION: 'bad_explosion',
   MONEY_EXPLOSION: 'money_explosion',
   AERO_CERBERUS_EXPLOSION: 'aero_cerberus_explosion',
   GOOD_EXPLOSION: 'good_explosion',
-  SUPER_EXPLOSION: 'super_explosion'
+  SUPER_EXPLOSION: 'super_explosion',
+  
+  // Персонажи
+  FRIENDER_IDLE: 'friender_idle',
+  FRIENDER_RUN: 'friender_run',
+  FRIENDER_DEAD: 'friender_dead'
 } as const;
 
 // Типы для TypeScript
 export type AnimationKey = typeof ANIMATION_KEYS[keyof typeof ANIMATION_KEYS];
 export type ExplosionType = keyof typeof EXPLOSION_ANIMATIONS;
+export type CharacterAnimationType = keyof typeof CHARACTER_ANIMATIONS;
 export type ComponentKey = keyof typeof SPRITE_ANIMATION_COMPONENTS;

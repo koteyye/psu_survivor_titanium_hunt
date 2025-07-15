@@ -1,19 +1,20 @@
 import * as Phaser from 'phaser';
-import type { GameConfig } from './types/common';
+import type { GameConfig } from './core/types';
+import { PHYSICS_CONSTANTS, SCALE_CONSTANTS } from './core/constants';
 
 export const gameConfig: GameConfig = {
   width: 1920,
   height: 1080,
   physics: {
-    default: 'arcade',
+    default: 'arcade' as const,
     arcade: {
-      gravity: { y: 200 },
-      debug: false
+      gravity: { x: 0, y: PHYSICS_CONSTANTS.GRAVITY.DEFAULT },
+      debug: PHYSICS_CONSTANTS.DEBUG
     }
   },
   scale: {
-    mode: Phaser.Scale.FIT,
-    autoCenter: Phaser.Scale.CENTER_BOTH
+    mode: SCALE_CONSTANTS.MODE,
+    autoCenter: SCALE_CONSTANTS.AUTO_CENTER
   }
 };
 

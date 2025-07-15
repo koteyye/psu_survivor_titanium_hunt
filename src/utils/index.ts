@@ -8,10 +8,15 @@ export { ShaderUtils } from './ShaderUtils';
 export { UIScaler } from './UIScaler';
 
 // Менеджер уровней
-export { LevelManager, levelManager } from './LevelManager';
+export { LevelManager } from './LevelManager';
 
 // Менеджер прогресса и достижений
-export { ProgressManager, progressManager, ACHIEVEMENTS } from './ProgressManager';
+export { ProgressManager } from './ProgressManager';
 
-// Оптимизация проекта
-export { ProjectOptimizer, projectOptimizer } from './ProjectOptimizer';
+// Temporary exports for compatibility
+import { LevelManager } from './LevelManager';
+import { ProgressManager } from './ProgressManager';
+
+export const levelManager = LevelManager.getInstance();
+export const progressManager = ProgressManager.getInstance();
+export const ACHIEVEMENTS = {};

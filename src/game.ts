@@ -1,23 +1,22 @@
 import * as Phaser from 'phaser';
 import { gameConfig } from './config';
-import type { PhaserConfig } from './types/phaser-extensions';
-// import { projectOptimizer, UIScaler } from './utils';
+import type { PhaserConfig } from './core/types';
 
-// Импорты сцен
-import { 
-  MenuScene, 
-  CharacterSelectScene 
-} from './scenes/ui/MenuScene';
-import { 
-  LevelSelectScene, 
-  SettingsScene, 
-  AboutScene 
-} from './scenes/ui/GameUIScenes';
+// Импорты сцен из новой структуры
+import {
+  MenuScene,
+  CharacterSelectScene
+} from './game/scenes/ui/MenuScene';
+import {
+  LevelSelectScene,
+  SettingsScene,
+  AboutScene
+} from './game/scenes/ui/GameUIScenes';
 import {
   MainScene,
   Level2Scene,
   Level3Scene
-} from './scenes/levels/GameLevels';
+} from './game/scenes/levels/GameLevels';
 
 class GameApp {
   private phaserGame: Phaser.Game;
@@ -57,22 +56,12 @@ class GameApp {
   private initializeUtilities(): void {
     console.log('🔧 Initializing game utilities...');
     
-    // Временные заглушки для отсутствующих утилит
+    // Инициализация игровых систем
     try {
-      // Инициализируем оптимизатор проекта
-      // if (projectOptimizer && typeof projectOptimizer.init === 'function') {
-      //   projectOptimizer.init();
-      //   
-      //   // Логируем статистику проекта
-      //   const stats = projectOptimizer.getProjectStats();
-      //   console.log(`📊 Project Stats: ${stats.typescriptFiles}/${stats.totalFiles} files migrated to TypeScript (${stats.migrationProgress}%)`);
-      //   
-      //   // Логируем отчет об очистке
-      //   const cleanupReport = projectOptimizer.getCleanupReport();
-      //   console.log('🧹 Cleanup Report:', cleanupReport);
-      // }
+      // TODO: Добавить инициализацию менеджеров когда они будут готовы
+      console.log('Game systems initialized');
     } catch (error) {
-      console.warn('ProjectOptimizer not available:', error);
+      console.warn('Error initializing game systems:', error);
     }
     
     console.log('✅ Utilities initialized successfully');
@@ -105,8 +94,24 @@ export function getGame(): GameApp | null {
 
 export { GameApp };
 
+// Глобальная обработка ошибок
+window.onerror = (msg, src, lineno, colno, error) => {
+  console.error('🚨 Глобальная ошибка:', msg, error);
+  console.error('📍 Файл:', src, 'Строка:', lineno, 'Колонка:', colno);
+  return false;
+};
+
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('🚨 Необработанное отклонение промиса:', event.reason);
+});
+
 // Инициализируем игру при загрузке страницы
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('DOM loaded, initializing game...');
-  initializeGame();
+  console.log('🎮 DOM loaded, initializing game...');
+  try {
+    initializeGame();
+    console.log('✅ Game initialization completed');
+  } catch (error) {
+    console.error('❌ Failed to initialize game:', error);
+  }
 });

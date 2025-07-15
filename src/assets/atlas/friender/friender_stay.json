@@ -1,0 +1,40 @@
+{
+	"textures": [
+		{
+			"image": "friender_stay",
+			"format": "RGBA8888",
+			"size": {
+				"w": 768,
+				"h": 1152
+			},
+			"scale": 1,
+			"frames": [
+				{
+					"filename": "friender_stay.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 768,
+						"h": 1152
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 768,
+						"h": 1152
+					},
+					"frame": {
+						"x": 0,
+						"y": 0,
+						"w": 768,
+						"h": 1152
+					}
+				}
+			]
+		}
+	],
+	"meta": {
+		"app": "manual",
+		"version": "1.0"
+	}
+}
