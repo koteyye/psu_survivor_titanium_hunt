@@ -30,10 +30,10 @@ export abstract class CyberUIElement {
   protected isActive: boolean = true;
   
   protected readonly colors: CyberColors = {
-    accent: 0x00f7ff, // Неоновый цвет
+    accent: 0xff6600, // Orange neon color
     accentDark: 0x003344,
-    textLight: 0xc0c0c0,
-    bgGlow: 0x00f7ff,
+    textLight: 0x1a1a1a, // Soft black color
+    bgGlow: 0xff6600, // Orange neon for background glow
     bgGlowAlpha: 0.1
   };
 
@@ -205,8 +205,12 @@ export abstract class CyberUIElement {
    * Создает текстовый стиль по умолчанию
    */
   protected getDefaultTextStyle(fontSize: number = 24): any {
+    // Import FontUtils dynamically to avoid circular dependencies
+    const FontUtils = require('../../../utils/FontUtils').FontUtils;
+    const fontUtils = FontUtils.getInstance();
+    
     return {
-      fontFamily: 'Orbitron, Arial, sans-serif',
+      fontFamily: fontUtils.getButtonFont(), // Use ButtonFonts for buttons instead of CyberpunkRus
       fontSize: `${fontSize}px`,
       color: `#${this.colors.textLight.toString(16).padStart(6, '0')}`,
       stroke: `#${this.colors.accent.toString(16).padStart(6, '0')}`,

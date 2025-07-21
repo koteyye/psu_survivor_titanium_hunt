@@ -111,6 +111,12 @@ export class AudioManager implements IAudioManager {
         return;
       }
 
+      // Проверяем, не играет ли уже эта же музыка
+      if (this.currentMusic && this.currentMusic.key === key && this.currentMusic.isPlaying) {
+        console.log(`Music ${key} is already playing, skipping duplicate playback`);
+        return;
+      }
+
       // Останавливаем текущую музыку
       this.stopMusic();
 
@@ -123,6 +129,14 @@ export class AudioManager implements IAudioManager {
       this.currentMusic = music;
       this.music.set(key, music);
       
+      // Добавляем обработчик завершения для очистки ссылки
+      music.once('complete', () => {
+        if (this.currentMusic === music) {
+          this.currentMusic = null;
+        }
+        this.music.delete(key);
+      });
+      
       console.log(`Music ${key} started successfully`);
     } catch (error) {
       console.error(`Error playing music ${key}:`, error);
@@ -130,8 +144,23 @@ export class AudioManager implements IAudioManager {
   }
 
   public stopMusic(): void {
-    if (this.currentMusic && this.currentMusic.stop) {
-      this.currentMusic.stop();
+    if (this.currentMusic) {
+      console.log(`Stopping current music: ${this.currentMusic.key}`);
+      
+      if (this.currentMusic.stop) {
+        this.currentMusic.stop();
+      }
+      
+      // Очищаем из коллекции музыки
+      if (this.currentMusic.key) {
+        this.music.delete(this.currentMusic.key);
+      }
+      
+      // Уничтожаем объект если возможно
+      if (this.currentMusic.destroy) {
+        this.currentMusic.destroy();
+      }
+      
       this.currentMusic = null;
     }
   }
@@ -183,6 +212,21 @@ export class AudioManager implements IAudioManager {
 
   public getSettings(): Readonly<AudioSettings> {
     return { ...this.settings };
+  }
+
+  /**
+   * Проверяет, играет ли в данный момент указанная музыка
+   */
+  public isMusicPlaying(key?: string): boolean {
+    if (!this.currentMusic) {
+      return false;
+    }
+
+    if (key) {
+      return this.currentMusic.key === key && this.currentMusic.isPlaying;
+    }
+
+    return this.currentMusic.isPlaying;
   }
 
   private stopAllSounds(): void {

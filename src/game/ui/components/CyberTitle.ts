@@ -1,4 +1,5 @@
 import { CyberUIElement } from '../base/CyberUIElement';
+import { FontUtils } from '../../../utils/FontUtils';
 
 export interface CyberTitleOptions {
   fontSize?: number;
@@ -42,9 +43,14 @@ export class CyberTitle extends CyberUIElement {
   ) {
     super(scene, x, y, options);
     
+    // Get FontUtils instance for proper font handling
+    const fontUtils = FontUtils.getInstance();
+    
     // Настройки по умолчанию
     this.fontSize = options.fontSize || 48;
-    this.fontFamily = options.fontFamily || 'Orbitron, Arial, sans-serif';
+    // Use Caslon Antique font for titles with proper fallback handling
+    this.fontFamily = options.fontFamily || fontUtils.getTitleFont();
+    // Use soft-black color with orange neon theme
     this.textColor = options.color || this.colors.textLight;
     this.glowColor = options.glowColor || this.colors.accent;
     this.glowIntensity = options.glowIntensity || 1;
@@ -126,24 +132,48 @@ export class CyberTitle extends CyberUIElement {
   }
 
   /**
-   * Получает стиль текста
+   * Получает стиль текста с проверкой загрузки шрифтов
    */
   private getTextStyle(): any {
+    // Get current font family with fallback handling
+    const fontFamily = this.getFontFamilyWithFallback();
+    
     return {
-      fontFamily: this.fontFamily,
+      fontFamily: fontFamily,
       fontSize: `${this.fontSize}px`,
       color: `#${this.textColor.toString(16).padStart(6, '0')}`,
       fontWeight: 'bold',
       align: 'center',
+      // Enhanced shadow for soft-black with orange neon theme
       shadow: {
-        offsetX: 2,
-        offsetY: 2,
-        color: '#000000',
-        blur: 5,
+        offsetX: 1,
+        offsetY: 1,
+        color: `#${this.glowColor.toString(16).padStart(6, '0')}`,
+        blur: 3,
         stroke: false,
         fill: true
       }
     };
+  }
+
+  /**
+   * Получает семейство шрифтов с обработкой ошибок загрузки
+   */
+  private getFontFamilyWithFallback(): string {
+    try {
+      const fontUtils = FontUtils.getInstance();
+      
+      // Check if title font is loaded, otherwise use fallback
+      if (fontUtils.isFontLoaded(FontUtils.TITLE_FONT)) {
+        return this.fontFamily;
+      } else {
+        console.warn('CyberTitle: Title font not loaded, using fallback');
+        return 'serif'; // Fallback for title font
+      }
+    } catch (error) {
+      console.error('CyberTitle: Error checking font status, using fallback:', error);
+      return 'serif'; // Safe fallback
+    }
   }
 
   /**
@@ -226,9 +256,55 @@ export class CyberTitle extends CyberUIElement {
       ...newStyle,
       color: `#${this.glowColor.toString(16).padStart(6, '0')}`,
       stroke: `#${this.glowColor.toString(16).padStart(6, '0')}`,
-      strokeThickness: 4 * this.glowIntensity
+      strokeThickness: 4 * this.glowIntensity,
+      shadow: {
+        offsetX: 0,
+        offsetY: 0,
+        color: `#${this.glowColor.toString(16).padStart(6, '0')}`,
+        blur: 10 * this.glowIntensity,
+        stroke: true,
+        fill: true
+      }
     };
     this.glowText.setStyle(glowStyle);
+    
+    return this;
+  }
+
+  /**
+   * Обновляет шрифт после загрузки (для обработки асинхронной загрузки шрифтов)
+   */
+  public refreshFont(): this {
+    try {
+      const fontUtils = FontUtils.getInstance();
+      
+      // Update font family to use loaded font
+      this.fontFamily = fontUtils.getTitleFont();
+      
+      // Refresh both text objects with new font
+      const newStyle = this.getTextStyle();
+      this.textObject.setStyle(newStyle);
+      
+      const glowStyle = {
+        ...newStyle,
+        color: `#${this.glowColor.toString(16).padStart(6, '0')}`,
+        stroke: `#${this.glowColor.toString(16).padStart(6, '0')}`,
+        strokeThickness: 4 * this.glowIntensity,
+        shadow: {
+          offsetX: 0,
+          offsetY: 0,
+          color: `#${this.glowColor.toString(16).padStart(6, '0')}`,
+          blur: 10 * this.glowIntensity,
+          stroke: true,
+          fill: true
+        }
+      };
+      this.glowText.setStyle(glowStyle);
+      
+      console.log('CyberTitle: Font refreshed successfully');
+    } catch (error) {
+      console.error('CyberTitle: Error refreshing font:', error);
+    }
     
     return this;
   }

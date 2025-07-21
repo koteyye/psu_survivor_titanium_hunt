@@ -14,6 +14,7 @@ export interface CyberButtonOptions {
   visible?: boolean;
   interactive?: boolean;
   alpha?: number;
+  borderRadius?: number;
 }
 
 export type ButtonCallback = () => void;
@@ -29,8 +30,9 @@ export class CyberButton extends CyberUIElement {
   private disabled: boolean;
   private callback: ButtonCallback;
   private text: string;
+  private borderRadius: number;
   
-  private background!: any; // Phaser.GameObjects.Rectangle
+  private background!: any; // Phaser.GameObjects.Graphics
   private textObject!: any; // Phaser.GameObjects.Text
   private hoverTween?: any; // Phaser.Tweens.Tween
 
@@ -52,6 +54,7 @@ export class CyberButton extends CyberUIElement {
     this.disabled = options.disabled || false;
     this.callback = callback;
     this.text = text;
+    this.borderRadius = options.borderRadius || 8;
     
     // Создаем элементы кнопки
     this.createButton();
@@ -71,17 +74,22 @@ export class CyberButton extends CyberUIElement {
       return;
     }
 
-    // Создаем фон кнопки (интерактивный прямоугольник)
-    this.background = this.scene.add.rectangle(
-      this.x,
-      this.y,
-      this.width,
-      this.height,
-      this.colors.bgGlow,
-      this.colors.bgGlowAlpha
+    // Создаем фон кнопки с округленными углами
+    this.background = this.scene.add.graphics();
+    this.drawButtonBackground();
+    
+    // Делаем фон интерактивным
+    this.background.setInteractive(
+      new Phaser.Geom.Rectangle(
+        -this.width / 2,
+        -this.height / 2,
+        this.width,
+        this.height
+      ),
+      Phaser.Geom.Rectangle.Contains
     );
-    this.background.setStrokeStyle(2, this.colors.accent);
-    this.background.setInteractive({ useHandCursor: true });
+    this.background.input.cursor = 'pointer';
+    this.background.setPosition(this.x, this.y);
     this.addElement(this.background);
 
     // Создаем текст кнопки
@@ -101,6 +109,38 @@ export class CyberButton extends CyberUIElement {
 
     // Настраиваем события взаимодействия
     this.setupInteraction();
+  }
+
+  /**
+   * Рисует фон кнопки с округленными углами
+   */
+  private drawButtonBackground(isHovered: boolean = false): void {
+    if (!this.background) return;
+
+    this.background.clear();
+    
+    // Устанавливаем цвета в зависимости от состояния
+    const fillAlpha = isHovered ? this.colors.bgGlowAlpha * 2 : this.colors.bgGlowAlpha;
+    
+    // Рисуем фон с округленными углами
+    this.background.fillStyle(this.colors.bgGlow, fillAlpha);
+    this.background.fillRoundedRect(
+      -this.width / 2,
+      -this.height / 2,
+      this.width,
+      this.height,
+      this.borderRadius
+    );
+    
+    // Рисуем границу
+    this.background.lineStyle(2, this.colors.accent, 1);
+    this.background.strokeRoundedRect(
+      -this.width / 2,
+      -this.height / 2,
+      this.width,
+      this.height,
+      this.borderRadius
+    );
   }
 
   /**
@@ -158,10 +198,22 @@ export class CyberButton extends CyberUIElement {
       });
     }
 
-    // Увеличиваем яркость
-    this.background.setFillStyle(this.colors.bgGlow, this.colors.bgGlowAlpha * 2);
+    // Перерисовываем фон с эффектом наведения
+    this.drawButtonBackground(true);
+    
+    // Увеличиваем интенсивность свечения текста
     this.textObject.setStyle({ 
-      color: '#ffffff'
+      color: '#1a1a1a',
+      stroke: '#ff6600',
+      strokeThickness: 2,
+      shadow: {
+        offsetX: 0,
+        offsetY: 0,
+        color: '#ff6600',
+        blur: 8,
+        stroke: true,
+        fill: true
+      }
     });
   }
 
@@ -183,10 +235,22 @@ export class CyberButton extends CyberUIElement {
       });
     }
 
-    // Возвращаем обычную яркость
-    this.background.setFillStyle(this.colors.bgGlow, this.colors.bgGlowAlpha);
+    // Перерисовываем фон в обычном состоянии
+    this.drawButtonBackground(false);
+    
+    // Возвращаем обычный стиль текста
     this.textObject.setStyle({
-      color: `#${this.colors.textLight.toString(16).padStart(6, '0')}`
+      color: '#1a1a1a',
+      stroke: '#ff6600',
+      strokeThickness: 1,
+      shadow: {
+        offsetX: 0,
+        offsetY: 0,
+        color: '#ff6600',
+        blur: 5,
+        stroke: true,
+        fill: true
+      }
     });
   }
 

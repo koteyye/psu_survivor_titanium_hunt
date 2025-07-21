@@ -45,3 +45,6 @@ Thumbs.db
 # Игнорируем файлы планирования и разработки
 AUDIO_FIXES_TODO.md
 PROJECT_REQUIREMENTS.md
+
+#Игнорируем папку с тасками
+.kiro

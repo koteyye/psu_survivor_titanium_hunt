@@ -1,11 +1,12 @@
 import { ConfigManager, AudioManager } from '../../../systems/managers';
 import { CyberButton, CyberTitle } from '../../ui';
 import { LevelManager } from '../../../utils/LevelManager';
+import { BaseMenuScene } from '../base/BaseMenuScene';
 
 /**
  * Сцена выбора уровня
  */
-export class LevelSelectScene extends Phaser.Scene {
+export class LevelSelectScene extends BaseMenuScene {
   private configManager: ConfigManager;
   private audioManager: AudioManager;
   private levelManager: LevelManager;
@@ -17,6 +18,12 @@ export class LevelSelectScene extends Phaser.Scene {
     this.configManager = ConfigManager.getInstance();
     this.audioManager = AudioManager.getInstance();
     this.levelManager = LevelManager.getInstance();
+  }
+
+  public preload(): void {
+    console.log('LevelSelectScene: Loading resources...');
+    // Preload the menu background
+    this.preloadMenuBackground();
   }
 
   public create(): void {
@@ -39,9 +46,8 @@ export class LevelSelectScene extends Phaser.Scene {
   }
 
   private createBackground(): void {
-    const graphics = this.add.graphics();
-    graphics.fillGradientStyle(0x001122, 0x001122, 0x000033, 0x000033, 1);
-    graphics.fillRect(0, 0, 1920, 1080);
+    // Use the shared menu background system
+    this.createMenuBackground();
   }
 
   private createTitle(): void {
@@ -131,7 +137,7 @@ export class LevelSelectScene extends Phaser.Scene {
 /**
  * Сцена настроек
  */
-export class SettingsScene extends Phaser.Scene {
+export class SettingsScene extends BaseMenuScene {
   private configManager: ConfigManager;
   private audioManager: AudioManager;
   private backButton?: CyberButton;
@@ -150,6 +156,16 @@ export class SettingsScene extends Phaser.Scene {
     // Загружаем текущие настройки
     this.musicEnabled = localStorage.getItem('musicEnabled') !== 'false';
     this.soundEnabled = localStorage.getItem('soundEnabled') !== 'false';
+  }
+
+  public preload(): void {
+    console.log('SettingsScene: Loading resources...');
+    // Preload the menu background
+    this.preloadMenuBackground();
+    
+    // Load settings icons
+    this.load.image('musicIcon', 'assets/ui/music.png');
+    this.load.image('soundIcon', 'assets/ui/sound.png');
   }
 
   public create(): void {
@@ -172,9 +188,8 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   private createBackground(): void {
-    const graphics = this.add.graphics();
-    graphics.fillGradientStyle(0x001122, 0x001122, 0x000033, 0x000033, 1);
-    graphics.fillRect(0, 0, 1920, 1080);
+    // Use the shared menu background system
+    this.createMenuBackground();
   }
 
   private createTitle(): void {
@@ -184,14 +199,11 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   private createSettingsControls(): void {
-    // Настройка музыки
-    this.add.text(600, 300, 'Музыка:', {
-      fontSize: '32px',
-      fontFamily: 'Orbitron, sans-serif',
-      color: '#ffffff'
-    });
+    // Music setting with icon - правый край иконки на уровне левого края кнопки "Назад"
+    const musicIcon = this.add.image(780, 320, 'musicIcon'); // Сдвинута левее, чтобы правый край был на уровне 860
+    musicIcon.setScale(0.2); // Значительно уменьшенный масштаб для компактного размера
     
-    this.musicButton = new CyberButton(this, 1200, 300, this.musicEnabled ? 'ВКЛ' : 'ВЫКЛ', () => {
+    this.musicButton = new CyberButton(this, 1130, 320, this.musicEnabled ? 'ВКЛ' : 'ВЫКЛ', () => {
       this.toggleMusic();
     }, {
       width: 200,
@@ -199,14 +211,11 @@ export class SettingsScene extends Phaser.Scene {
       fontSize: 24
     });
     
-    // Настройка звуков
-    this.add.text(600, 400, 'Звуки:', {
-      fontSize: '32px',
-      fontFamily: 'Orbitron, sans-serif',
-      color: '#ffffff'
-    });
+    // Sound setting with icon - правый край иконки на уровне левого края кнопки "Назад"
+    const soundIcon = this.add.image(780, 450, 'soundIcon'); // Сдвинута левее + небольшая корректировка для выравнивания центра
+    soundIcon.setScale(0.2); // Значительно уменьшенный масштаб для компактного размера
     
-    this.soundButton = new CyberButton(this, 1200, 400, this.soundEnabled ? 'ВКЛ' : 'ВЫКЛ', () => {
+    this.soundButton = new CyberButton(this, 1130, 450, this.soundEnabled ? 'ВКЛ' : 'ВЫКЛ', () => {
       this.toggleSound();
     }, {
       width: 200,
@@ -253,17 +262,69 @@ export class SettingsScene extends Phaser.Scene {
 }
 
 /**
+ * Interface for about game configuration
+ */
+interface AboutGameConfig {
+  pageTitle: string;
+  gameInfo: string;
+  author: string;
+  version: string;
+}
+
+/**
  * Сцена "О игре"
  */
-export class AboutScene extends Phaser.Scene {
+export class AboutScene extends BaseMenuScene {
   private backButton?: CyberButton;
+  private aboutConfig?: AboutGameConfig;
+  private configLoadError: boolean = false;
 
   constructor() {
     super({ key: 'AboutScene' });
   }
 
+  public preload(): void {
+    console.log('AboutScene: Loading resources...');
+    // Preload the menu background
+    this.preloadMenuBackground();
+    
+    // Load about game configuration
+    this.load.json('aboutGameConfig', 'assets/configs/about-game.json');
+    
+    // Handle configuration loading success
+    this.load.on('filecomplete-json-aboutGameConfig', () => {
+      console.log('AboutScene: Configuration file loaded successfully');
+    });
+    
+    // Handle configuration loading errors
+    this.load.on('loaderror', (file: any) => {
+      if (file.key === 'aboutGameConfig') {
+        console.error('AboutScene: Failed to load about-game.json configuration');
+        this.configLoadError = true;
+      }
+    });
+  }
+
   public create(): void {
     console.log('AboutScene: Creating about screen...');
+    
+    // Load configuration data if available
+    if (!this.configLoadError) {
+      try {
+        this.aboutConfig = this.cache.json.get('aboutGameConfig') as AboutGameConfig;
+        if (this.aboutConfig) {
+          console.log('AboutScene: Configuration loaded successfully:', this.aboutConfig);
+        } else {
+          console.warn('AboutScene: Configuration is null or undefined');
+          this.configLoadError = true;
+        }
+      } catch (error) {
+        console.error('AboutScene: Error parsing configuration data:', error);
+        this.configLoadError = true;
+      }
+    } else {
+      console.log('AboutScene: Using fallback content due to config load error');
+    }
     
     // Создаем фон
     this.createBackground();
@@ -282,20 +343,32 @@ export class AboutScene extends Phaser.Scene {
   }
 
   private createBackground(): void {
-    const graphics = this.add.graphics();
-    graphics.fillGradientStyle(0x001122, 0x001122, 0x000033, 0x000033, 1);
-    graphics.fillRect(0, 0, 1920, 1080);
+    // Use the shared menu background system
+    this.createMenuBackground();
   }
 
   private createTitle(): void {
-    const title = new CyberTitle(this, 960, 120, 'О ИГРЕ', {
+    // Use title from configuration if available, otherwise use fallback
+    const titleText = this.aboutConfig?.pageTitle || 'О ИГРЕ';
+    
+    const title = new CyberTitle(this, 960, 120, titleText, {
       fontSize: 64
     });
   }
 
   private createGameInfo(): void {
-    const gameInfo = `
-PSU SURVIVOR: TITANIUM HUNT
+    let gameInfo: string;
+    let authorInfo: string = '';
+    let versionInfo: string = '';
+
+    if (this.aboutConfig && !this.configLoadError) {
+      // Use information from loaded configuration
+      gameInfo = this.aboutConfig.gameInfo;
+      authorInfo = `\n\nАвтор: ${this.aboutConfig.author}`;
+      versionInfo = `\nВерсия: ${this.aboutConfig.version}`;
+    } else {
+      // Fallback information when configuration fails to load
+      gameInfo = `PSU SURVIVOR: TITANIUM HUNT
 
 Добро пожаловать в мир высоких технологий и опасных приключений!
 
@@ -316,10 +389,17 @@ PSU SURVIVOR: TITANIUM HUNT
 - M - возврат в меню
 - ESC - выход
 
-Удачи в охоте за титаном!
-    `;
+Удачи в охоте за титаном!`;
+      
+      // Show error message if configuration failed to load
+      if (this.configLoadError) {
+        authorInfo = '\n\n[Ошибка загрузки конфигурации]';
+      }
+    }
 
-    this.add.text(960, 450, gameInfo, {
+    const fullText = gameInfo + authorInfo + versionInfo;
+
+    this.add.text(960, 450, fullText, {
       fontSize: '20px',
       fontFamily: 'Orbitron, sans-serif',
       color: '#ffffff',

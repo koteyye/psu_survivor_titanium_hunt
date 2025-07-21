@@ -1,21 +1,22 @@
 import { ConfigManager, AudioManager, EventManager } from '../../../systems/managers';
 import { CyberButton, CyberTitle } from '../../ui';
+import { FontUtils } from '../../../utils';
+import { BaseMenuScene } from '../base/BaseMenuScene';
 
 /**
  * Главное меню игры
  */
-export class MenuScene extends Phaser.Scene {
+export class MenuScene extends BaseMenuScene {
   private configManager: ConfigManager;
   private audioManager: AudioManager;
   private eventManager: EventManager;
+  private fontUtils: FontUtils;
   
-  private backgroundImage?: Phaser.GameObjects.Image;
   private titleText?: CyberTitle;
   private startButton?: CyberButton;
   private levelSelectButton?: CyberButton;
   private settingsButton?: CyberButton;
   private aboutButton?: CyberButton;
-  private exitButton?: CyberButton;
 
   constructor() {
     super({ key: 'MenuScene' });
@@ -24,6 +25,7 @@ export class MenuScene extends Phaser.Scene {
     this.configManager = ConfigManager.getInstance();
     this.audioManager = AudioManager.getInstance();
     this.eventManager = EventManager.getInstance();
+    this.fontUtils = FontUtils.getInstance();
   }
 
   public init(): void {
@@ -41,7 +43,7 @@ export class MenuScene extends Phaser.Scene {
     this.load.json('core_config', `assets/configs/core.json?v=${cacheBuster}`);
     
     // Загружаем ресурсы для меню
-    this.load.image('menuBackground', `assets/ui/menu_background.png?v=${cacheBuster}`);
+    this.load.image('menuBackground', `assets/images/backgrounds/menu_background.png?v=${cacheBuster}`);
     this.load.audio('menuMusic', `assets/sounds/menu/menu_background.wav?v=${cacheBuster}`);
     
     // Загружаем иконки настроек
@@ -54,6 +56,9 @@ export class MenuScene extends Phaser.Scene {
     this.load.image('friender_s', `assets/characters/friender_s.png?v=${cacheBuster}`);
     this.load.image('trader', `assets/characters/trader.png?v=${cacheBuster}`);
     this.load.image('zummer', `assets/characters/zummer.png?v=${cacheBuster}`);
+    
+    // Загружаем шрифты
+    this.loadFonts();
   }
 
   public create(): void {
@@ -68,8 +73,11 @@ export class MenuScene extends Phaser.Scene {
     // Создаем фон
     this.createBackground();
     
-    // Воспроизводим музыку меню
-    this.audioManager.playMusic('menuMusic');
+    // Воспроизводим музыку меню только если она еще не играет
+    this.playMenuMusicIfNeeded();
+    
+    // Проверяем статус загрузки шрифтов
+    this.checkFontLoadingStatus();
     
     // Создаем заголовок
     this.createTitle();
@@ -102,18 +110,8 @@ export class MenuScene extends Phaser.Scene {
   }
 
   private createBackground(): void {
-    // Проверяем наличие изображения фона
-    if (this.textures.exists('menuBackground')) {
-      this.backgroundImage = this.add.image(960, 540, 'menuBackground');
-      if (this.backgroundImage) {
-        this.backgroundImage.setDisplaySize(1920, 1080);
-      }
-    } else {
-      // Создаем градиентный фон как запасной вариант
-      const graphics = this.add.graphics();
-      graphics.fillGradientStyle(0x001122, 0x001122, 0x000033, 0x000033, 1);
-      graphics.fillRect(0, 0, 1920, 1080);
-    }
+    // Use the shared menu background system
+    this.createMenuBackground();
   }
 
   private createTitle(): void {
@@ -121,9 +119,9 @@ export class MenuScene extends Phaser.Scene {
       fontSize: 72
     });
     
-    // Добавляем эффект свечения для заголовка
-    this.titleText.setStroke('#00f7ff', 4);
-    this.titleText.setShadow(0, 0, '#00f7ff', 10, true, true);
+    // Добавляем эффект свечения для заголовка - оранжевый цвет как у кнопок
+    this.titleText.setStroke('#ff6600', 4);
+    this.titleText.setShadow(0, 0, '#ff6600', 10, true, true);
   }
 
   private createMenuButtons(): void {
@@ -134,7 +132,7 @@ export class MenuScene extends Phaser.Scene {
     };
 
     // Кнопка "Начать игру"
-    this.startButton = new CyberButton(this, 960, 400, 'НАЧАТЬ ИГРУ', () => {
+    this.startButton = new CyberButton(this, 960, 450, 'НАЧАТЬ ИГРУ', () => {
       this.audioManager.stopMusic();
       this.scene.start('CharacterSelectScene');
     }, {
@@ -142,7 +140,7 @@ export class MenuScene extends Phaser.Scene {
     });
 
     // Кнопка "Выбор уровня"
-    this.levelSelectButton = new CyberButton(this, 960, 500, 'ВЫБОР УРОВНЯ', () => {
+    this.levelSelectButton = new CyberButton(this, 960, 550, 'ВЫБОР УРОВНЯ', () => {
       this.audioManager.stopMusic();
       this.scene.start('LevelSelectScene');
     }, {
@@ -150,22 +148,15 @@ export class MenuScene extends Phaser.Scene {
     });
 
     // Кнопка "Настройки"
-    this.settingsButton = new CyberButton(this, 960, 600, 'НАСТРОЙКИ', () => {
+    this.settingsButton = new CyberButton(this, 960, 650, 'НАСТРОЙКИ', () => {
       this.scene.start('SettingsScene');
     }, {
       ...buttonConfig
     });
 
     // Кнопка "О игре"
-    this.aboutButton = new CyberButton(this, 960, 700, 'О ИГРЕ', () => {
+    this.aboutButton = new CyberButton(this, 960, 750, 'О ИГРЕ', () => {
       this.scene.start('AboutScene');
-    }, {
-      ...buttonConfig
-    });
-
-    // Кнопка "Выход"
-    this.exitButton = new CyberButton(this, 960, 800, 'ВЫХОД', () => {
-      this.confirmExit();
     }, {
       ...buttonConfig
     });
@@ -173,10 +164,6 @@ export class MenuScene extends Phaser.Scene {
 
   private setupEventListeners(): void {
     // Обработчик клавиш
-    this.input.keyboard?.on('keydown-ESC', () => {
-      this.confirmExit();
-    });
-    
     this.input.keyboard?.on('keydown-ENTER', () => {
       // Быстрый старт с последним выбранным персонажем
       const lastCharacter = localStorage.getItem('selectedCharacter') || 'friender_s';
@@ -185,37 +172,102 @@ export class MenuScene extends Phaser.Scene {
     });
   }
 
-  private confirmExit(): void {
-    // Создаем диалог подтверждения выхода
-    const overlay = this.add.rectangle(960, 540, 1920, 1080, 0x000000, 0.7);
+
+
+  /**
+   * Загружает шрифты с обработкой ошибок и fallback
+   */
+  private loadFonts(): void {
+    console.log('MenuScene: Loading fonts...');
     
-    const confirmText = this.add.text(960, 400, 'ВЫЙТИ ИЗ ИГРЫ?', {
-      fontSize: '48px',
-      fontFamily: 'Orbitron, sans-serif',
-      color: '#ffffff',
-      align: 'center'
-    }).setOrigin(0.5);
+    try {
+      // Используем FontUtils для загрузки шрифтов
+      this.fontUtils.preloadFonts(this);
+    } catch (error) {
+      console.warn('MenuScene: Error initializing font loading:', error);
+    }
+  }
+
+  /**
+   * Проверяет статус загрузки шрифтов и выводит отладочную информацию
+   */
+  private checkFontLoadingStatus(): void {
+    console.log('MenuScene: Checking font loading status...');
     
-    const yesButton = new CyberButton(this, 760, 500, 'ДА', () => {
-      // Закрываем игру (в браузере это просто закрывает вкладку)
-      window.close();
-    }, {
-      width: 200,
-      height: 60,
-      fontSize: 24
-    });
+    const fontStatus = this.fontUtils.getFontLoadingStatus();
+    console.log('Font loading status:', fontStatus);
     
-    const noButton = new CyberButton(this, 1160, 500, 'НЕТ', () => {
-      // Убираем диалог
-      overlay.destroy();
-      confirmText.destroy();
-      yesButton.destroy();
-      noButton.destroy();
-    }, {
-      width: 200,
-      height: 60,
-      fontSize: 24
-    });
+    console.log('Title font family:', this.fontUtils.getTitleFont());
+    console.log('UI font family:', this.fontUtils.getUIFont());
+    
+    if (this.fontUtils.areAllFontsLoaded()) {
+      console.log('✅ All fonts loaded successfully');
+    } else {
+      console.log('⚠️ Some fonts are still loading or failed to load, using fallbacks');
+    }
+  }
+
+  /**
+   * Воспроизводит музыку меню только если она еще не играет
+   */
+  private playMenuMusicIfNeeded(): void {
+    // Проверяем, что музыка включена в настройках
+    const settings = this.audioManager.getSettings();
+    if (!settings.musicEnabled) {
+      console.log('MenuScene: Music is disabled, skipping menu music playback');
+      return;
+    }
+
+    // Проверяем, что аудио файл загружен
+    if (!this.cache.audio.exists('menuMusic')) {
+      console.warn('MenuScene: menuMusic not found in cache, skipping playback');
+      return;
+    }
+
+    // Проверяем, играет ли уже музыка меню
+    if (this.isMenuMusicPlaying()) {
+      console.log('MenuScene: Menu music is already playing, skipping duplicate playback');
+      return;
+    }
+
+    // Воспроизводим музыку меню
+    console.log('MenuScene: Starting menu music');
+    this.audioManager.playMusic('menuMusic');
+  }
+
+  /**
+   * Проверяет, играет ли в данный момент музыка меню
+   */
+  private isMenuMusicPlaying(): boolean {
+    return this.audioManager.isMusicPlaying('menuMusic');
+  }
+
+  /**
+   * Метод вызывается при завершении сцены
+   */
+  public shutdown(): void {
+    console.log('MenuScene: Shutting down...');
+    // Очищаем обработчики событий клавиатуры
+    this.input.keyboard?.removeAllListeners();
+  }
+
+  /**
+   * Метод вызывается при уничтожении сцены
+   */
+  public destroy(): void {
+    console.log('MenuScene: Destroying...');
+    // Останавливаем музыку при уничтожении сцены
+    this.audioManager.stopMusic();
+    
+    // Очищаем ссылки на объекты
+    this.titleText = undefined;
+    this.startButton = undefined;
+    this.levelSelectButton = undefined;
+    this.settingsButton = undefined;
+    this.aboutButton = undefined;
+    
+    // Call parent destroy to handle background cleanup
+    super.destroy();
   }
 
   public update(): void {
@@ -226,18 +278,20 @@ export class MenuScene extends Phaser.Scene {
 /**
  * Сцена выбора персонажа
  */
-export class CharacterSelectScene extends Phaser.Scene {
+export class CharacterSelectScene extends BaseMenuScene {
   private configManager: ConfigManager;
   private audioManager: AudioManager;
+  private fontUtils: FontUtils;
   private characters: Array<{
     id: string;
     name: string;
     description: string;
+    frame?: Phaser.GameObjects.Container;
     sprite?: Phaser.GameObjects.Image;
-    button?: CyberButton;
   }> = [];
   public selectedCharacter: string = '';
   private characterInfo?: Phaser.GameObjects.Text;
+  private characterInfoPanel?: Phaser.GameObjects.Container;
   private confirmButton?: CyberButton;
   private backButton?: CyberButton;
 
@@ -245,6 +299,13 @@ export class CharacterSelectScene extends Phaser.Scene {
     super({ key: 'CharacterSelectScene' });
     this.configManager = ConfigManager.getInstance();
     this.audioManager = AudioManager.getInstance();
+    this.fontUtils = FontUtils.getInstance();
+  }
+
+  public preload(): void {
+    console.log('CharacterSelectScene: Loading resources...');
+    // Preload the menu background
+    this.preloadMenuBackground();
   }
 
   public init(): void {
@@ -253,8 +314,8 @@ export class CharacterSelectScene extends Phaser.Scene {
     // Получаем данные персонажей из конфигурации
     this.initializeCharacters();
     
-    // Получаем последний выбранный персонаж
-    this.selectedCharacter = localStorage.getItem('selectedCharacter') || 'friender_s';
+    // No character selected by default as per requirements
+    this.selectedCharacter = '';
   }
 
   private initializeCharacters(): void {
@@ -292,6 +353,9 @@ export class CharacterSelectScene extends Phaser.Scene {
     // Создаем персонажей
     this.createCharacterSelection();
     
+    // Создаем информационную панель (всегда видимую)
+    this.createCharacterInfoPanel();
+    
     // Создаем кнопки управления
     this.createControlButtons();
     
@@ -303,10 +367,8 @@ export class CharacterSelectScene extends Phaser.Scene {
   }
 
   private createBackground(): void {
-    // Создаем фон (аналогично MenuScene)
-    const graphics = this.add.graphics();
-    graphics.fillGradientStyle(0x001122, 0x001122, 0x000033, 0x000033, 1);
-    graphics.fillRect(0, 0, 1920, 1080);
+    // Use the shared menu background system
+    this.createMenuBackground();
   }
 
   private createTitle(): void {
@@ -317,50 +379,83 @@ export class CharacterSelectScene extends Phaser.Scene {
   }
 
   private createCharacterSelection(): void {
-    const startX = 480;
-    const spacing = 480;
+    const frameWidth = 300;
+    const frameHeight = 350;
+    const spacing = 350;
+    const startX = 960 - (spacing * (this.characters.length - 1)) / 2; // Center-aligned
+    const frameY = 400;
     
     this.characters.forEach((character, index) => {
       const x = startX + (index * spacing);
-      const y = 400;
       
-      // Создаем изображение персонажа
+      // Create container for the character frame
+      character.frame = this.add.container(x, frameY);
+      
+      // Create border rectangle
+      const border = this.add.rectangle(0, 0, frameWidth, frameHeight);
+      border.setStrokeStyle(3, 0xffffff, 0.8);
+      border.setFillStyle(0x000000, 0.3);
+      
+      // Create character sprite if texture exists
       if (this.textures.exists(character.id)) {
-        character.sprite = this.add.image(x, y, character.id);
+        character.sprite = this.add.image(0, -20, character.id);
         if (character.sprite) {
-          character.sprite.setScale(1.5);
+          character.sprite.setScale(1.2);
           
-          // Добавляем рамку для выбранного персонажа
-          if (character.id === this.selectedCharacter) {
-            character.sprite.setTint(0x00ff00);
-          }
+          // Apply black-and-white filter for default state
+          character.sprite.setTint(0x808080); // Gray tint for black-and-white effect
         }
       }
       
-      // Создаем кнопку выбора
-      character.button = new CyberButton(this, x, y + 150, character.name, () => {
+      // Add elements to the frame container
+      const frameElements: Phaser.GameObjects.GameObject[] = [border];
+      if (character.sprite) {
+        frameElements.push(character.sprite);
+      }
+      character.frame.add(frameElements);
+      
+      // Make frame interactive
+      character.frame.setSize(frameWidth, frameHeight);
+      character.frame.setInteractive();
+      
+      // Add hover effects
+      character.frame.on('pointerover', () => {
+        // Restore color on hover (remove black-and-white filter)
+        if (character.sprite) {
+          character.sprite.clearTint();
+        }
+      });
+      
+      character.frame.on('pointerout', () => {
+        // Restore black-and-white filter when not hovering (unless selected)
+        if (character.sprite && character.id !== this.selectedCharacter) {
+          character.sprite.setTint(0x808080);
+        }
+      });
+      
+      // Add click handler
+      character.frame.on('pointerdown', () => {
         this.selectCharacter(character.id);
-      }, {
-        width: 300,
-        height: 60,
-        fontSize: 24
       });
     });
   }
 
   private createControlButtons(): void {
-    // Кнопка подтверждения
-    this.confirmButton = new CyberButton(this, 960, 700, 'НАЧАТЬ ИГРУ', () => {
-      localStorage.setItem('selectedCharacter', this.selectedCharacter);
-      this.scene.start('MainScene', { character: this.selectedCharacter });
+    // Кнопка подтверждения - только работает если персонаж выбран
+    // Перемещена ниже информационного блока
+    this.confirmButton = new CyberButton(this, 960, 850, 'НАЧАТЬ ИГРУ', () => {
+      if (this.selectedCharacter) {
+        localStorage.setItem('selectedCharacter', this.selectedCharacter);
+        this.scene.start('MainScene', { character: this.selectedCharacter });
+      }
     }, {
       width: 300,
       height: 80,
       fontSize: 28
     });
     
-    // Кнопка возврата
-    this.backButton = new CyberButton(this, 960, 800, 'НАЗАД', () => {
+    // Кнопка возврата - перемещена ниже кнопки "Начать игру"
+    this.backButton = new CyberButton(this, 960, 950, 'НАЗАД', () => {
       this.scene.start('MenuScene');
     }, {
       width: 200,
@@ -375,8 +470,10 @@ export class CharacterSelectScene extends Phaser.Scene {
     });
     
     this.input.keyboard?.on('keydown-ENTER', () => {
-      localStorage.setItem('selectedCharacter', this.selectedCharacter);
-      this.scene.start('MainScene', { character: this.selectedCharacter });
+      if (this.selectedCharacter) {
+        localStorage.setItem('selectedCharacter', this.selectedCharacter);
+        this.scene.start('MainScene', { character: this.selectedCharacter });
+      }
     });
     
     // Клавиши для быстрого выбора персонажа
@@ -394,41 +491,85 @@ export class CharacterSelectScene extends Phaser.Scene {
   }
 
   private selectCharacter(characterId: string): void {
-    // Убираем выделение с предыдущего персонажа
+    // Remove highlight from previous character frame
     const previousChar = this.characters.find(c => c.id === this.selectedCharacter);
-    if (previousChar?.sprite) {
-      previousChar.sprite.clearTint();
+    if (previousChar?.frame) {
+      // Remove orange neon highlight from previous selection
+      const previousBorder = previousChar.frame.list[0] as Phaser.GameObjects.Rectangle;
+      if (previousBorder) {
+        previousBorder.setStrokeStyle(3, 0xffffff, 0.8);
+        previousBorder.clearFX();
+      }
+      // Restore black-and-white filter to previous character sprite
+      if (previousChar.sprite) {
+        previousChar.sprite.setTint(0x808080);
+      }
     }
     
-    // Выделяем новый персонаж
+    // Select new character
     this.selectedCharacter = characterId;
     const newChar = this.characters.find(c => c.id === characterId);
-    if (newChar?.sprite) {
-      newChar.sprite.setTint(0x00ff00);
+    if (newChar?.frame) {
+      // Add bright orange neon highlight to selected frame
+      const border = newChar.frame.list[0] as Phaser.GameObjects.Rectangle;
+      if (border) {
+        border.setStrokeStyle(4, 0xff6600, 1.0); // Orange neon color
+        // Add glow effect
+        const glow = border.preFX?.addGlow(0xff6600, 2, 0, false, 0.1, 32);
+      }
+      // Keep selected character in full color
+      if (newChar.sprite) {
+        newChar.sprite.clearTint();
+      }
     }
     
-    // Обновляем информацию о персонаже
+    // Update character information
     this.updateCharacterInfo();
     
-    // Воспроизводим звук выбора
+    // Play selection sound
     this.audioManager.playSound(`gameplay/replicas/${characterId}/select`);
   }
 
   private updateCharacterInfo(): void {
-    const character = this.characters.find(c => c.id === this.selectedCharacter);
-    if (!character) return;
-    
+    // Clear existing character info text
     if (this.characterInfo) {
       this.characterInfo.destroy();
+      this.characterInfo = undefined;
     }
     
-    this.characterInfo = this.add.text(960, 600, 
-      `${character.name}\n\n${character.description}`, {
-      fontSize: '24px',
-      fontFamily: 'Orbitron, sans-serif',
+    // Create character information text based on selection
+    let infoText = '';
+    if (this.selectedCharacter) {
+      const character = this.characters.find(c => c.id === this.selectedCharacter);
+      if (character) {
+        infoText = `${character.name}\n\n${character.description}`;
+      }
+    }
+    // If no character selected, text remains empty but panel is still visible
+    
+    this.characterInfo = this.add.text(960, 690, infoText, {
+      fontSize: '28px',
+      fontFamily: this.fontUtils.getRegularFont(),
       color: '#ffffff',
       align: 'center',
-      wordWrap: { width: 600 }
+      wordWrap: { width: 700 },
+      stroke: '#ff6600',
+      strokeThickness: 1
     }).setOrigin(0.5);
+  }
+
+  private createCharacterInfoPanel(): void {
+    // Create always-visible character information display panel below frames
+    // Frames are at y=400 with height=350, so bottom is at 575
+    // Adding 75px gap: 575 + 75 = 650
+    this.characterInfoPanel = this.add.container(960, 690);
+    
+    // Create background for the info panel - larger size as shown in the image
+    const panelBackground = this.add.rectangle(0, 0, 1200, 200);
+    panelBackground.setStrokeStyle(3, 0xff6600, 0.9);
+    panelBackground.setFillStyle(0x000000, 0.8);
+    
+    // Add background to the panel container
+    this.characterInfoPanel.add([panelBackground]);
   }
 }
